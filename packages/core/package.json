@@ -1,0 +1,15 @@
+{
+  "name": "@effect-deck/core",
+  "version": "0.0.1",
+  "description": "Core game engine for Effect Deck",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha",
+    "dev": "tsc --watch"
+  },
+  "peerDependencies": {
+    "effect": "^3.16.10"
+  }
+}

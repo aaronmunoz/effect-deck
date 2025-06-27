@@ -1,0 +1,24 @@
+{
+  "name": "@effect-deck/cli",
+  "version": "0.0.1",
+  "description": "CLI interface for Effect Deck",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "effect-deck": "./dist/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha",
+    "dev": "tsc --watch",
+    "start": "node dist/cli.js"
+  },
+  "dependencies": {
+    "@effect-deck/core": "file:../core",
+    "@oclif/core": "^4.4.0",
+    "inquirer": "^12.6.3"
+  },
+  "peerDependencies": {
+    "effect": "^3.16.10"
+  }
+}

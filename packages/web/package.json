@@ -1,0 +1,18 @@
+{
+  "name": "@effect-deck/web",
+  "version": "0.0.1",
+  "description": "Web interface for Effect Deck (stub)",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "test": "mocha",
+    "dev": "tsc --watch"
+  },
+  "dependencies": {
+    "@effect-deck/core": "file:../core"
+  },
+  "peerDependencies": {
+    "effect": "^3.16.10"
+  }
+}

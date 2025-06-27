@@ -1,0 +1,1 @@
+export const webStub = 'Web package placeholder for future implementation'
