@@ -1,109 +1,127 @@
-# EffectDeck
+# Effect Deck
 
-<a alt="Nx logo" href="https://nx.dev" target="_blank" rel="noreferrer"><img src="https://raw.githubusercontent.com/nrwl/nx/master/images/nx-logo.png" width="45"></a>
+A deck-building card game built with Effect-TS, demonstrating functional programming patterns and Effect composition.
 
-✨ Your new, shiny [Nx workspace](https://nx.dev) is ready ✨.
+## 🎯 Features
 
-[Learn more about this workspace setup and its capabilities](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects) or run `npx nx graph` to visually explore what was created. Now, let's get you up to speed!
+- **Core Game Engine**: Built with Effect-TS for composable, type-safe game logic
+- **JSON Schema Responses**: All game state changes return structured JSON responses
+- **CLI Interface**: Interactive command-line game interface
+- **Monorepo Structure**: Organized packages for core engine, web interface, and CLI
+- **Type Safety**: Full TypeScript with strict mode and exact optional property types
 
-## Generate a library
+## 🚀 Quick Start
 
-```sh
-npx nx g @nx/js:lib packages/pkg1 --publishable --importPath=@my-org/pkg1
+```bash
+# Clone and install dependencies
+git clone <repository-url>
+cd effect-deck
+npm install
+
+# Build all packages
+npm run build
+
+# Start the CLI game
+npm run game
 ```
 
-## Run tasks
+## 🎮 How to Play
 
-To build the library use:
+Effect Deck is a turn-based card game where you battle against corrupted processes using programming-themed cards:
 
-```sh
-npx nx build pkg1
+### Basic Gameplay
+- Start with 50 health and 3 energy per turn
+- Draw 5 cards from your deck to start
+- Play cards by spending energy
+- End your turn to let the enemy attack
+- Defeat the enemy to win!
+
+### Card Types
+- **Attack Cards**: Deal damage to enemies (Strike, Heavy Strike, etc.)
+- **Defense Cards**: Gain shield to block incoming damage
+- **Context Cards**: Provide programming contexts (Algorithm, HighEnergy, etc.)
+- **Dependent Cards**: Powerful cards that require specific contexts
+
+### Example Cards
+- `Strike` (1 ⚡): Deal 6 damage
+- `Block` (1 ⚡): Gain 5 shield
+- `Initialize Algorithm` (1 ⚡): Gain Algorithm context
+- `Overclock Attack` (2 ⚡): Deal 15 damage (requires HighEnergy context)
+
+## 🏗️ Architecture
+
+### Package Structure
+```
+effect-deck/
+├── packages/
+│   ├── core/          # Game engine and business logic
+│   ├── web/           # Web interface (stub)
+│   └── cli/           # Command-line interface
+├── tsconfig.base.json # Shared TypeScript configuration
+└── package.json       # Root workspace configuration
 ```
 
-To run any task with Nx use:
+### Core Engine (`@effect-deck/core`)
+- **Schema**: JSON Schema definitions for game state and actions
+- **Cards**: Card definitions and effect implementations
+- **Game Engine**: Turn management, state transitions, and game loop
+- **Effect Composition**: All game logic built with Effect primitives
 
-```sh
-npx nx <target> <project-name>
+### CLI Interface (`@effect-deck/cli`)
+- **Renderer**: Game state visualization
+- **Input**: Player action handling with inquirer
+- **Game Loop**: Orchestrates game engine and user interface
+
+## 🛠️ Development
+
+### Scripts
+```bash
+npm run build          # Build all packages
+npm run build:core     # Build core package only
+npm run build:cli      # Build CLI package only
+npm run lint           # Run ESLint
+npm run format         # Format code with Prettier
+npm run game           # Start CLI game
 ```
 
-These targets are either [inferred automatically](https://nx.dev/concepts/inferred-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) or defined in the `project.json` or `package.json` files.
+### Architecture Principles
+- **Functional Programming**: All logic implemented with pure functions and Effect composition
+- **Type Safety**: Comprehensive TypeScript with strict null checks and exact optional properties
+- **Error Handling**: Structured error types, no thrown exceptions
+- **Dependency Injection**: Effect Context and Layer patterns for modularity
+- **Immutable State**: All state changes return new state objects
 
-[More about running tasks in the docs &raquo;](https://nx.dev/features/run-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+### Adding New Cards
+1. Define card in `packages/core/src/cards.ts`
+2. Add effect implementation in the switch statement in `game-engine.ts`
+3. Update schema if needed for new card properties
 
-## Versioning and releasing
+## 🎯 Game Design Goals
 
-To version and release the library use
+1. **Demonstrate Effect Patterns**: Show real-world usage of Effect-TS in a game context
+2. **Type-Safe Game Logic**: Leverage TypeScript's type system for game rules
+3. **Composable Effects**: Build complex card interactions from simple Effect primitives
+4. **JSON API Ready**: Core engine returns structured data suitable for any interface
+5. **Programming Themes**: Cards and mechanics inspired by software development concepts
 
-```
-npx nx release
-```
+## 🔧 Technical Highlights
 
-Pass `--dry-run` to see what would happen without actually releasing the library.
+- **Effect-TS**: Demonstrates Effect composition, error handling, and dependency injection
+- **Strict TypeScript**: `exactOptionalPropertyTypes`, `strictNullChecks`, `noImplicitAny`
+- **Monorepo**: Nx workspace with proper package boundaries and dependency management
+- **Code Quality**: ESLint, Prettier
+- **Schema Validation**: Runtime type safety with Effect Schema
 
-[Learn more about Nx release &raquo;](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+## 📈 Future Enhancements
 
-## Keep TypeScript project references up to date
+- Web interface with React/Next.js
+- Multiplayer support
+- Card deck building and customization
+- More enemy types and encounters
+- Save/load game state
+- Animation and visual effects
+- Tournament mode
 
-Nx automatically updates TypeScript [project references](https://www.typescriptlang.org/docs/handbook/project-references.html) in `tsconfig.json` files to ensure they remain accurate based on your project dependencies (`import` or `require` statements). This sync is automatically done when running tasks such as `build` or `typecheck`, which require updated references to function correctly.
+## 📄 License
 
-To manually trigger the process to sync the project graph dependencies information to the TypeScript project references, run the following command:
-
-```sh
-npx nx sync
-```
-
-You can enforce that the TypeScript project references are always in the correct state when running in CI by adding a step to your CI job configuration that runs the following command:
-
-```sh
-npx nx sync:check
-```
-
-[Learn more about nx sync](https://nx.dev/reference/nx-commands#sync)
-
-## Set up CI!
-
-### Step 1
-
-To connect to Nx Cloud, run the following command:
-
-```sh
-npx nx connect
-```
-
-Connecting to Nx Cloud ensures a [fast and scalable CI](https://nx.dev/ci/intro/why-nx-cloud?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects) pipeline. It includes features such as:
-
-- [Remote caching](https://nx.dev/ci/features/remote-cache?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task distribution across multiple machines](https://nx.dev/ci/features/distribute-task-execution?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Automated e2e test splitting](https://nx.dev/ci/features/split-e2e-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Task flakiness detection and rerunning](https://nx.dev/ci/features/flaky-tasks?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-### Step 2
-
-Use the following command to configure a CI workflow for your workspace:
-
-```sh
-npx nx g ci-workflow
-```
-
-[Learn more about Nx on CI](https://nx.dev/ci/intro/ci-with-nx#ready-get-started-with-your-provider?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Install Nx Console
-
-Nx Console is an editor extension that enriches your developer experience. It lets you run tasks, generate code, and improves code autocompletion in your IDE. It is available for VSCode and IntelliJ.
-
-[Install Nx Console &raquo;](https://nx.dev/getting-started/editor-setup?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-## Useful links
-
-Learn more:
-
-- [Learn more about this workspace setup](https://nx.dev/nx-api/js?utm_source=nx_project&amp;utm_medium=readme&amp;utm_campaign=nx_projects)
-- [Learn about Nx on CI](https://nx.dev/ci/intro/ci-with-nx?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [Releasing Packages with Nx release](https://nx.dev/features/manage-releases?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-- [What are Nx plugins?](https://nx.dev/concepts/nx-plugins?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
-
-And join the Nx community:
-- [Discord](https://go.nx.dev/community)
-- [Follow us on X](https://twitter.com/nxdevtools) or [LinkedIn](https://www.linkedin.com/company/nrwl)
-- [Our Youtube channel](https://www.youtube.com/@nxdevtools)
-- [Our blog](https://nx.dev/blog?utm_source=nx_project&utm_medium=readme&utm_campaign=nx_projects)
+MIT License

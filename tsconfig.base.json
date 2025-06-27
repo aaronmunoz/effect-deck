@@ -15,7 +15,19 @@
     "noUnusedLocals": true,
     "skipLibCheck": true,
     "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "exactOptionalPropertyTypes": true,
     "target": "es2022",
-    "customConditions": ["development"]
+    "customConditions": ["development"],
+    "baseUrl": ".",
+    "paths": {
+      "@effect-deck/core": ["packages/core/src/index.ts"],
+      "@effect-deck/core/*": ["packages/core/src/*"],
+      "@effect-deck/web": ["packages/web/src/index.ts"],
+      "@effect-deck/web/*": ["packages/web/src/*"],
+      "@effect-deck/cli": ["packages/cli/src/index.ts"],
+      "@effect-deck/cli/*": ["packages/cli/src/*"]
+    }
   }
 }
