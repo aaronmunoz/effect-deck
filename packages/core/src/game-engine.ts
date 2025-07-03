@@ -1,12 +1,14 @@
-import { Effect, Ref } from 'effect'
+import { Effect, Ref, Layer } from 'effect'
 import type { GameState, GameAction, GameResponse, Card, Player, Enemy } from './schema.js'
 import { BASIC_CARDS, applyDamage } from './cards.js'
-
-export interface GameEngine {
-  processAction: (action: GameAction) => Effect.Effect<GameResponse, string>
-  getGameState: () => Effect.Effect<GameState>
-  startNewGame: () => Effect.Effect<GameResponse>
-}
+import { 
+  GameError, 
+  CardNotFound, 
+  InsufficientEnergy, 
+  RequiredContextMissing,
+  InvalidAction 
+} from './errors.js'
+import { GameEngine, GameStateRef } from './services.js'
 
 const createInitialPlayer = (): Player => ({
   id: 'player',
@@ -54,39 +56,60 @@ const drawCards = (player: Player, count: number): Player => {
   }
 }
 
-const canPlayCard = (card: Card, player: Player): boolean => {
-  if (player.energy < card.cost) return false
-  
-  if (card.type === 'dependent') {
-    switch (card.id) {
-      case 'overclock_attack':
-        return player.contexts.includes('HighEnergy')
-      case 'shield_slam':
-        return player.shield > 0
-      case 'execute_algorithm':
-        return player.contexts.includes('Algorithm')
-      default:
-        return true
+const validateCardPlay = (card: Card, player: Player): Effect.Effect<void, InsufficientEnergy | RequiredContextMissing> =>
+  Effect.gen(function* () {
+    if (player.energy < card.cost) {
+      return yield* Effect.fail(new InsufficientEnergy({
+        required: card.cost,
+        available: player.energy
+      }))
     }
-  }
-  
-  return true
-}
+    
+    if (card.type === 'dependent') {
+      switch (card.id) {
+        case 'overclock_attack':
+          if (!player.contexts.includes('HighEnergy')) {
+            return yield* Effect.fail(new RequiredContextMissing({
+              required: 'HighEnergy',
+              available: player.contexts
+            }))
+          }
+          break
+        case 'shield_slam':
+          if (player.shield === 0) {
+            return yield* Effect.fail(new RequiredContextMissing({
+              required: 'Shield > 0',
+              available: [`Shield: ${player.shield}`]
+            }))
+          }
+          break
+        case 'execute_algorithm':
+          if (!player.contexts.includes('Algorithm')) {
+            return yield* Effect.fail(new RequiredContextMissing({
+              required: 'Algorithm',
+              available: player.contexts
+            }))
+          }
+          break
+      }
+    }
+  })
 
-const playCard = (gameState: GameState, cardId: string): Effect.Effect<GameState, string> =>
+const playCard = (gameState: GameState, cardId: string): Effect.Effect<GameState, GameError> =>
   Effect.gen(function* () {
     const { player, enemy } = gameState
     const cardIndex = player.hand.findIndex((c) => c.id === cardId)
     
     if (cardIndex === -1) {
-      return yield* Effect.fail('Card not found in hand')
+      return yield* Effect.fail(new CardNotFound({
+        cardId,
+        availableCards: player.hand.map(c => c.id)
+      }))
     }
     
     const card = player.hand[cardIndex]
     
-    if (!canPlayCard(card, player)) {
-      return yield* Effect.fail('Cannot play this card')
-    }
+    yield* validateCardPlay(card, player)
     
     const newHand = player.hand.filter((_, i) => i !== cardIndex)
     const newDiscard = [...player.discard, card]
@@ -197,71 +220,124 @@ const getValidActions = (gameState: GameState): GameAction[] => {
   return actions
 }
 
+export const canPlayCard = (card: Card, player: Player): boolean => {
+  if (player.energy < card.cost) return false
+  
+  if (card.type === 'dependent') {
+    switch (card.id) {
+      case 'overclock_attack':
+        return player.contexts.includes('HighEnergy')
+      case 'shield_slam':
+        return player.shield > 0
+      case 'execute_algorithm':
+        return player.contexts.includes('Algorithm')
+      default:
+        return true
+    }
+  }
+  
+  return true
+}
+
+// Layer that provides GameStateRef
+export const GameStateRefLive: Layer.Layer<GameStateRef> = 
+  Layer.effect(
+    GameStateRef,
+    Effect.gen(function* () {
+      const ref = yield* Ref.make(createInitialGameState())
+      return { ref }
+    })
+  )
+
+// Layer that provides GameEngine service
+export const GameEngineLive: Layer.Layer<GameEngine, never, GameStateRef> =
+  Layer.effect(
+    GameEngine,
+    Effect.gen(function* () {
+      const { ref: gameStateRef } = yield* GameStateRef
+
+      const startNewGame = (): Effect.Effect<GameResponse, GameError> =>
+        Effect.gen(function* () {
+          const initialState = createInitialGameState()
+          const playerWithCards = drawCards(initialState.player, 5)
+          const newState = {
+            ...initialState,
+            player: playerWithCards,
+            phase: 'action' as const,
+          }
+          
+          yield* Ref.set(gameStateRef, newState)
+          
+          return {
+            gameState: newState,
+            validActions: getValidActions(newState),
+          }
+        })
+      
+      const processAction = (action: GameAction): Effect.Effect<GameResponse, GameError> =>
+        Effect.gen(function* () {
+          const currentState = yield* Ref.get(gameStateRef)
+          
+          let newState: GameState
+          
+          switch (action.type) {
+            case 'play_card':
+              newState = yield* playCard(currentState, action.cardId)
+              break
+            case 'end_turn':
+              const afterEnemy = enemyTurn(currentState)
+              const playerWithCards = drawCards(afterEnemy.player, 2)
+              newState = {
+                ...afterEnemy,
+                turn: afterEnemy.turn + 1,
+                phase: 'action',
+                player: {
+                  ...playerWithCards,
+                  energy: playerWithCards.maxEnergy,
+                  shield: 0,
+                },
+              }
+              break
+            case 'start_game':
+              return yield* startNewGame()
+            default:
+              return yield* Effect.fail(new InvalidAction({
+                action: (action as any).type || 'unknown',
+                reason: 'Unknown action type'
+              }))
+          }
+          
+          yield* Ref.set(gameStateRef, newState)
+          
+          return {
+            gameState: newState,
+            validActions: getValidActions(newState),
+          }
+        })
+      
+      const getGameState = (): Effect.Effect<GameState> => Ref.get(gameStateRef)
+      
+      return {
+        processAction,
+        getGameState,
+        startNewGame,
+      }
+    })
+  )
+
+// Combined layer for the full game engine
+export const GameEngineLayer = Layer.provide(GameEngineLive, GameStateRefLive)
+
+// Backward compatibility function (deprecated)
 export const createGameEngine = (): Effect.Effect<GameEngine> =>
   Effect.gen(function* () {
-    const gameStateRef = yield* Ref.make(createInitialGameState())
-    
-    const startNewGame = (): Effect.Effect<GameResponse> =>
-      Effect.gen(function* () {
-        const initialState = createInitialGameState()
-        const playerWithCards = drawCards(initialState.player, 5)
-        const newState = {
-          ...initialState,
-          player: playerWithCards,
-          phase: 'action' as const,
-        }
-        
-        yield* Ref.set(gameStateRef, newState)
-        
-        return {
-          gameState: newState,
-          validActions: getValidActions(newState),
-        }
-      })
-    
-    const processAction = (action: GameAction): Effect.Effect<GameResponse, string> =>
-      Effect.gen(function* () {
-        const currentState = yield* Ref.get(gameStateRef)
-        
-        let newState: GameState
-        
-        switch (action.type) {
-          case 'play_card':
-            newState = yield* playCard(currentState, action.cardId)
-            break
-          case 'end_turn':
-            const afterEnemy = enemyTurn(currentState)
-            const playerWithCards = drawCards(afterEnemy.player, 2)
-            newState = {
-              ...afterEnemy,
-              turn: afterEnemy.turn + 1,
-              phase: 'action',
-              player: {
-                ...playerWithCards,
-                energy: playerWithCards.maxEnergy,
-                shield: 0,
-              },
-            }
-            break
-          case 'start_game':
-            return yield* startNewGame()
-          default:
-            return yield* Effect.fail('Invalid action type')
-        }
-        
-        yield* Ref.set(gameStateRef, newState)
-        
-        return {
-          gameState: newState,
-          validActions: getValidActions(newState),
-        }
-      })
-    
-    const getGameState = (): Effect.Effect<GameState> => Ref.get(gameStateRef)
-    
+    const engine = yield* Effect.provide(
+      GameEngine,
+      GameEngineLayer
+    )
     return {
-      processAction,
-      getGameState,
-      startNewGame,
+      processAction: engine.processAction,
+      getGameState: engine.getGameState,
+      startNewGame: engine.startNewGame,
     }
   })

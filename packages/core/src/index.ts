@@ -1,3 +1,5 @@
 export * from './schema.js'
 export * from './cards.js'
 export * from './game-engine.js'
+export * from './errors.js'
+export * from './services.js'
