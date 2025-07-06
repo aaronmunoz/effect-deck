@@ -1,5 +1,6 @@
 import { Effect } from 'effect'
 import type { Card, Player, Enemy } from './schema.js'
+import { CardNotFound } from './errors.js'
 
 const createCard = (
   id: string,
@@ -33,11 +34,14 @@ export const BASIC_CARDS: Card[] = [
   createCard('execute_algorithm', 'Execute Algorithm', 3, 'Deal 20 damage (requires Algorithm)', 'dependent'),
 ]
 
-export const getCard = (id: string): Effect.Effect<Card, string> =>
+export const getCard = (id: string): Effect.Effect<Card, CardNotFound> =>
   Effect.gen(function* () {
     const card = BASIC_CARDS.find((card) => card.id === id)
     if (!card) {
-      return yield* Effect.fail(`Card not found: ${id}`)
+      return yield* Effect.fail(new CardNotFound({
+        cardId: id,
+        availableCards: BASIC_CARDS.map(c => c.id)
+      }))
     }
     return card
   })

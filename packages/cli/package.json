@@ -11,7 +11,8 @@
     "build": "tsc",
     "test": "mocha",
     "dev": "tsc --watch",
-    "start": "node dist/cli.js"
+    "start": "node dist/cli.js",
+    "start:effect": "node dist/cli-effect.js"
   },
   "dependencies": {
     "@effect-deck/core": "file:../core",

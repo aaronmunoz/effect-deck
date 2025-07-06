@@ -1,4 +1,5 @@
 import type { GameState, Card } from '@effect-deck/core'
+import { canPlayCardSync } from '@effect-deck/core'
 
 export class GameRenderer {
   render(gameState: GameState): void {
@@ -51,7 +52,7 @@ export class GameRenderer {
 
     console.log('\n🃏 Hand:')
     player.hand.forEach((card, index) => {
-      const playable = this.canPlayCard(card, gameState)
+      const playable = this.canPlayCardHelper(card, gameState)
       const prefix = playable ? '✅' : '❌'
       const costText = `⚡${card.cost}`
       console.log(`   ${index + 1}. ${prefix} ${card.name} (${costText}) - ${card.description}`)
@@ -70,24 +71,7 @@ export class GameRenderer {
     return '█'.repeat(filled) + '░'.repeat(empty)
   }
 
-  private canPlayCard(card: Card, gameState: GameState): boolean {
-    const { player } = gameState
-    
-    if (player.energy < card.cost) return false
-    
-    if (card.type === 'dependent') {
-      switch (card.id) {
-        case 'overclock_attack':
-          return player.contexts.includes('HighEnergy')
-        case 'shield_slam':
-          return player.shield > 0
-        case 'execute_algorithm':
-          return player.contexts.includes('Algorithm')
-        default:
-          return true
-      }
-    }
-    
-    return true
+  private canPlayCardHelper(card: Card, gameState: GameState): boolean {
+    return canPlayCardSync(card, gameState.player)
   }
 }

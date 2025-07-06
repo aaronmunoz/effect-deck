@@ -5,7 +5,8 @@ import { GameEngine, AppLayer } from '@effect-deck/core'
 import { GameRenderer } from './renderer.js'
 import { PlayerInput } from './input.js'
 
-const main = Effect.gen(function* () {
+// Main game program using Effect Context/Layer pattern
+const program = Effect.gen(function* () {
   yield* Console.log('🃏 Welcome to Effect Deck!')
   yield* Console.log('A deck-building game built with Effect\n')
   
@@ -43,4 +44,7 @@ const main = Effect.gen(function* () {
   }
 })
 
-Effect.runPromise(Effect.provide(main, AppLayer)).catch(console.error)
+// Run the program with dependency injection
+const main = Effect.provide(program, AppLayer)
+
+Effect.runPromise(main).catch(console.error)
