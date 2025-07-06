@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Effect, Console } from 'effect'
-import { createGameEngine } from '@effect-deck/core'
+import { GameEngine, AppLayer } from '@effect-deck/core'
 import { GameRenderer } from './renderer.js'
 import { PlayerInput } from './input.js'
 
@@ -9,7 +9,7 @@ const main = Effect.gen(function* () {
   yield* Console.log('🃏 Welcome to Effect Deck!')
   yield* Console.log('A deck-building game built with Effect\n')
   
-  const gameEngine = yield* createGameEngine()
+  const gameEngine = yield* GameEngine
   const renderer = new GameRenderer()
   const input = new PlayerInput()
   
@@ -43,4 +43,4 @@ const main = Effect.gen(function* () {
   }
 })
 
-Effect.runPromise(main).catch(console.error)
+Effect.runPromise(Effect.provide(main, AppLayer)).catch(console.error)

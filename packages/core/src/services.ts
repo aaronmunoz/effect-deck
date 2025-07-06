@@ -1,10 +1,11 @@
 import { Context, Effect, Ref } from 'effect'
 import type { GameState, GameAction, GameResponse } from './schema.js'
 import type { GameError } from './errors.js'
+import type { CardRegistry } from './card-effects.js'
 
 // Service interface using Context
 export interface GameEngine {
-  readonly processAction: (action: GameAction) => Effect.Effect<GameResponse, GameError>
+  readonly processAction: (action: GameAction) => Effect.Effect<GameResponse, GameError, CardRegistry>
   readonly getGameState: () => Effect.Effect<GameState>
   readonly startNewGame: () => Effect.Effect<GameResponse, GameError>
 }

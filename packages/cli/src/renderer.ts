@@ -1,5 +1,5 @@
 import type { GameState, Card } from '@effect-deck/core'
-import { canPlayCard } from '@effect-deck/core'
+import { canPlayCardSync } from '@effect-deck/core'
 
 export class GameRenderer {
   render(gameState: GameState): void {
@@ -72,6 +72,6 @@ export class GameRenderer {
   }
 
   private canPlayCardHelper(card: Card, gameState: GameState): boolean {
-    return canPlayCard(card, gameState.player)
+    return canPlayCardSync(card, gameState.player)
   }
 }

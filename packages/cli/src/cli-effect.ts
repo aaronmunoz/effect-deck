@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 
 import { Effect, Console } from 'effect'
-import { GameEngine, GameEngineLayer } from '@effect-deck/core'
+import { GameEngine, AppLayer } from '@effect-deck/core'
 import { GameRenderer } from './renderer.js'
 import { PlayerInput } from './input.js'
 
@@ -45,6 +45,6 @@ const program = Effect.gen(function* () {
 })
 
 // Run the program with dependency injection
-const main = Effect.provide(program, GameEngineLayer)
+const main = Effect.provide(program, AppLayer)
 
 Effect.runPromise(main).catch(console.error)
