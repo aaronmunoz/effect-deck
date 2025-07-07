@@ -16,23 +16,29 @@ export class CardDisplay {
     const cardArt = this.getCardArt(card.type)
     const costIcon = this.getCostIcon(card.cost)
     
+    // Truncate name if too long and pad description to consistent length
+    const cardName = card.name.length > 12 ? card.name.substring(0, 12) : card.name
+    const description = card.description.length > 18 ? 
+      card.description.substring(0, 15) + '...' : 
+      card.description
+    
     const cardContent = [
-      chalk.bold(cardColor(card.name.toUpperCase())),
+      chalk.bold(cardColor(cardName.toUpperCase())),
       '',
       cardColor(cardArt),
       '',
-      chalk.dim(card.description),
+      chalk.dim(description),
       '',
       `${costIcon} ${chalk.bold(card.cost)} Energy`
     ].join('\n')
 
     return boxen(cardContent, {
       padding: 1,
-      margin: { left: 1, right: 1 },
+      margin: { top: 0, bottom: 0, left: 1, right: 1 },
       borderStyle: selected ? 'double' : 'round',
       borderColor: borderColor as any,
-      width: 22,
-      textAlignment: 'center'
+      textAlignment: 'center',
+      width: 20
     })
   }
 
@@ -144,18 +150,11 @@ export class CardDisplay {
     const cardLines = cardDisplays.map(card => card.split('\n'))
     const maxLines = Math.max(...cardLines.map(lines => lines.length))
     
-    // Ensure all cards have the same number of lines
-    cardLines.forEach(lines => {
-      while (lines.length < maxLines) {
-        lines.push(' '.repeat(24)) // Approximate card width
-      }
-    })
-
     const combinedLines: string[] = []
     for (let lineIndex = 0; lineIndex < maxLines; lineIndex++) {
       const line = cardLines
-        .map(lines => lines[lineIndex] || ' '.repeat(24))
-        .join(' ')
+        .map(lines => lines[lineIndex] || '')
+        .join('  ') // Add spacing between cards
       combinedLines.push(line)
     }
 
