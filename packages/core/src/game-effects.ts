@@ -1,7 +1,7 @@
 import { Effect, Layer } from 'effect'
-import type { Player, Enemy } from './schema.js'
-import type { GameEffects } from './card-effects.js'
-import { GameEffects as GameEffectsTag } from './card-effects.js'
+import type { Player, Enemy } from './schema'
+import type { GameEffects } from './card-effects'
+import { GameEffects as GameEffectsTag } from './card-effects'
 
 // Apply damage calculation with shield mechanics
 const applyDamage = (target: Player | Enemy, damage: number, ignoreShield = false): Player | Enemy => {

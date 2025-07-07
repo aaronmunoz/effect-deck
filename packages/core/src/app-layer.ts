@@ -1,8 +1,8 @@
 import { Layer } from 'effect'
-import { GameEngineLayer } from './game-engine.js'
-import { CardRegistryLive } from './card-registry.js'
-import { GameEffectsLive } from './game-effects.js'
-import { CardBootstrapLayer } from './card-bootstrap.js'
+import { GameEngineLayer } from './game-engine'
+import { CardRegistryLive } from './card-registry'
+import { GameEffectsLive } from './game-effects'
+import { CardBootstrapLayer } from './card-bootstrap'
 
 // First provide the basic services
 const BaseServicesLayer = Layer.mergeAll(

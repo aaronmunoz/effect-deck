@@ -6,7 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
-    "test": "mocha",
+    "test": "echo 'No tests yet for Web package'",
     "dev": "tsc --watch"
   },
   "dependencies": {

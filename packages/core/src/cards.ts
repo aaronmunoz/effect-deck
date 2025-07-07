@@ -1,6 +1,6 @@
 import { Effect } from 'effect'
-import type { Card, Player, Enemy } from './schema.js'
-import { CardNotFound } from './errors.js'
+import type { Card, Player, Enemy } from './schema'
+import { CardNotFound } from './errors'
 
 const createCard = (
   id: string,

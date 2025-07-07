@@ -11,6 +11,8 @@
     "build": "npm run build --workspaces",
     "build:core": "npm run build --workspace=@effect-deck/core",
     "build:cli": "npm run build --workspace=@effect-deck/cli",
+    "test": "npm run test --workspaces --if-present",
+    "test:core": "npm run test --workspace=@effect-deck/core",
     "start": "npm run start --workspace=@effect-deck/cli",
     "game": "npm run start --workspace=@effect-deck/cli"
   },

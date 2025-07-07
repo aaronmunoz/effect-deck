@@ -9,7 +9,7 @@
   },
   "scripts": {
     "build": "tsc",
-    "test": "mocha",
+    "test": "echo 'No tests yet for CLI package'",
     "dev": "tsc --watch",
     "start": "node dist/cli.js",
     "start:effect": "node dist/cli-effect.js"

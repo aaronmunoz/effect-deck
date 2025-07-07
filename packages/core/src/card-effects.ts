@@ -1,7 +1,7 @@
 import { Context, Effect } from 'effect'
-import type { GameState, Card, Player, Enemy } from './schema.js'
-import type { GameError } from './errors.js'
-import { CardNotFound } from './errors.js'
+import type { GameState, Card, Player, Enemy } from './schema'
+import type { GameError } from './errors'
+import { CardNotFound } from './errors'
 
 // Core card effect interface
 export interface CardEffect {

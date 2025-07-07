@@ -1,7 +1,7 @@
 import { Effect, Layer } from 'effect'
-import { CardRegistry, CardEffect } from './card-effects.js'
-import { GameEffects } from './card-effects.js'
-import { InsufficientEnergy, RequiredContextMissing } from './errors.js'
+import { CardRegistry, CardEffect } from './card-effects'
+import { GameEffects } from './card-effects'
+import { InsufficientEnergy, RequiredContextMissing } from './errors'
 
 // Create individual card effects with proper typing
 const createStrikeEffect = (gameEffects: GameEffects): CardEffect => ({
