@@ -4,10 +4,8 @@ import figlet from 'figlet'
 import boxen from 'boxen'
 import Table from 'cli-table3'
 import type { GameState } from '@effect-deck/core'
-import { CardDisplay } from './card-display'
 
 export class FlashyRenderer {
-  private cardDisplay = new CardDisplay()
 
   async render(gameState: GameState): Promise<void> {
     console.clear()
@@ -134,7 +132,7 @@ export class FlashyRenderer {
       const emptyHand = boxen(
         chalk.dim.italic('No cards in hand'),
         {
-          title: '🃏 HAND',
+          title: '🃏 HAND SUMMARY',
           titleAlignment: 'center',
           padding: 1,
           margin: 1,
@@ -146,11 +144,61 @@ export class FlashyRenderer {
       return
     }
 
-    const handTitle = chalk.bold.magenta('🃏 YOUR HAND 🃏')
-    const handDisplay = this.cardDisplay.renderHand([...player.hand], gameState)
+    // Create compact hand summary instead of full display
+    const handSummary = this.createHandSummary(player.hand, gameState)
     
-    console.log(handTitle)
-    console.log(handDisplay)
+    const handBox = boxen(handSummary, {
+      title: '🃏 HAND SUMMARY',
+      titleAlignment: 'center',
+      padding: 1,
+      margin: 1,
+      borderStyle: 'single',
+      borderColor: 'magenta'
+    })
+    
+    console.log(handBox)
+  }
+
+  private createHandSummary(hand: readonly any[], gameState: GameState): string {
+    const { player } = gameState
+    
+    // Count card types
+    const counts = {
+      attack: hand.filter(c => c.type === 'attack').length,
+      defense: hand.filter(c => c.type === 'defense').length,  
+      context: hand.filter(c => c.type === 'context').length,
+      dependent: hand.filter(c => c.type === 'dependent').length
+    }
+    
+    // Count playable vs unplayable
+    const playableCount = hand.filter(card => player.energy >= card.cost).length
+    const totalCount = hand.length
+    
+    const typeDisplay = [
+      counts.attack > 0 ? `⚔️ ${counts.attack} Attack` : '',
+      counts.defense > 0 ? `🛡️ ${counts.defense} Defense` : '',
+      counts.context > 0 ? `⚙️ ${counts.context} Context` : '',
+      counts.dependent > 0 ? `🔗 ${counts.dependent} Dependent` : ''
+    ].filter(Boolean).join('  |  ')
+    
+    const playabilityDisplay = `${chalk.green(playableCount)} playable / ${chalk.dim(totalCount)} total`
+    
+    const cardList = hand.map((card, index) => {
+      const playable = player.energy >= card.cost
+      const icon = playable ? chalk.green('✓') : chalk.red('✗')
+      const name = card.name.length > 12 ? card.name.substring(0, 12) + '...' : card.name
+      const cost = playable ? chalk.yellow(`⚡${card.cost}`) : chalk.gray(`⚡${card.cost}`)
+      return `${chalk.dim((index + 1) + '.')} ${icon} ${name} ${cost}`
+    }).join('\n')
+    
+    return [
+      `Cards: ${playabilityDisplay}`,
+      typeDisplay ? `Types: ${typeDisplay}` : '',
+      '',
+      cardList,
+      '',
+      chalk.dim('💡 Use interactive mode to see full card details')
+    ].filter(Boolean).join('\n')
   }
 
   private renderGameLog(gameState: GameState): void {

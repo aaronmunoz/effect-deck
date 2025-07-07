@@ -162,17 +162,82 @@ export class CardDisplay {
   }
 
   /**
-   * Create a card selection prompt display
+   * Create a card selection prompt display with detailed view
    */
   renderCardSelection(cards: Card[], gameState: GameState, hoveredIndex: number): string {
     const title = chalk.bold.cyan('🃏 Select a Card to Play 🃏')
     const handDisplay = this.renderHand(cards, gameState, hoveredIndex)
     
+    // Show detailed view of selected card
+    const selectedCard = cards[hoveredIndex]
+    const cardDetails = selectedCard ? this.renderCardDetails(selectedCard, gameState) : ''
+    
     const instructions = [
-      chalk.dim('Use ↑/↓ to navigate, Enter to select, Q to end turn'),
+      chalk.dim('Navigation: ↑/↓ or 1-9 to select, Enter to play, E to end turn, Q to quit'),
       ''
     ].join('\n')
 
-    return [title, '', handDisplay, '', instructions].join('\n')
+    return [
+      title, 
+      '', 
+      handDisplay, 
+      '', 
+      cardDetails,
+      '',
+      instructions
+    ].filter(Boolean).join('\n')
+  }
+
+  /**
+   * Render detailed view of a specific card with full text
+   */
+  private renderCardDetails(card: Card, gameState: GameState): string {
+    const playable = canPlayCardSync(card, gameState.player)
+    const cardColor = this.getCardColor(card.type, playable)
+    
+    const statusText = playable 
+      ? chalk.green('✅ PLAYABLE') 
+      : chalk.red(`❌ NEED ${card.cost} ENERGY (have ${gameState.player.energy})`)
+    
+    const typeText = this.getCardTypeDescription(card.type)
+    
+    const detailsContent = [
+      chalk.bold(cardColor(`${card.name.toUpperCase()}`)),
+      chalk.cyan(`Type: ${typeText}`),
+      chalk.yellow(`Cost: ⚡ ${card.cost} Energy`),
+      '',
+      chalk.white('Effect:'),
+      chalk.dim(card.description),
+      '',
+      statusText
+    ].join('\n')
+
+    return boxen(detailsContent, {
+      title: '📋 CARD DETAILS',
+      titleAlignment: 'center',
+      padding: 1,
+      margin: { top: 0, bottom: 0, left: 1, right: 1 },
+      borderStyle: 'single',
+      borderColor: playable ? 'green' : 'red',
+      textAlignment: 'left'
+    })
+  }
+
+  /**
+   * Get human-readable card type description
+   */
+  private getCardTypeDescription(type: Card['type']): string {
+    switch (type) {
+      case 'attack':
+        return '⚔️ Attack - Deals damage to enemies'
+      case 'defense':
+        return '🛡️ Defense - Provides protection or healing'
+      case 'context':
+        return '⚙️ Context - Grants temporary abilities or states'
+      case 'dependent':
+        return '🔗 Dependent - Enhanced effects based on contexts'
+      default:
+        return '✨ Special - Unique effect'
+    }
   }
 }
