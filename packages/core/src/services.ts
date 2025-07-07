@@ -1,7 +1,7 @@
 import { Context, Effect, Ref } from 'effect'
-import type { GameState, GameAction, GameResponse } from './schema.js'
-import type { GameError } from './errors.js'
-import type { CardRegistry } from './card-effects.js'
+import type { GameState, GameAction, GameResponse } from './schema'
+import type { GameError } from './errors'
+import type { CardRegistry } from './card-effects'
 
 // Service interface using Context
 export interface GameEngine {

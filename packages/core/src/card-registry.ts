@@ -1,7 +1,7 @@
 import { Effect, Layer, Ref } from 'effect'
-import type { CardRegistry, CardEffect } from './card-effects.js'
-import { CardRegistry as CardRegistryTag } from './card-effects.js'
-import { CardNotFound } from './errors.js'
+import type { CardRegistry, CardEffect } from './card-effects'
+import { CardRegistry as CardRegistryTag } from './card-effects'
+import { CardNotFound } from './errors'
 
 // Card registry implementation
 export const CardRegistryLive: Layer.Layer<CardRegistry> = 

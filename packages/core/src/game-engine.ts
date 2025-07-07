@@ -1,13 +1,13 @@
 import { Effect, Ref, Layer } from 'effect'
-import type { GameState, GameAction, GameResponse, Card, Player, Enemy } from './schema.js'
-import { BASIC_CARDS, applyDamage } from './cards.js'
+import type { GameState, GameAction, GameResponse, Card, Player, Enemy } from './schema'
+import { BASIC_CARDS, applyDamage } from './cards'
 import { 
   GameError, 
   CardNotFound, 
   InvalidAction 
-} from './errors.js'
-import { GameEngine, GameStateRef } from './services.js'
-import { CardRegistry } from './card-effects.js'
+} from './errors'
+import { GameEngine, GameStateRef } from './services'
+import { CardRegistry } from './card-effects'
 
 const createInitialPlayer = (): Player => ({
   id: 'player',
