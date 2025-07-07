@@ -2,9 +2,11 @@ import chalk from 'chalk'
 import type { GameState, GameAction } from '@effect-deck/core'
 import { canPlayCardSync } from '@effect-deck/core'
 import { CardDisplay } from './card-display'
+import { type TextDisplayMode, getNextDisplayMode } from './text-display-mode'
 
 export class InteractiveInput {
   private cardDisplay = new CardDisplay()
+  private displayMode: TextDisplayMode = 'normal' // Default to normal mode
 
   /**
    * Get user input with enhanced interactive card selection
@@ -113,6 +115,12 @@ export class InteractiveInput {
             }
             break
             
+          case 't':
+          case 'T':
+            this.displayMode = getNextDisplayMode(this.displayMode)
+            updateDisplay()
+            break
+            
           case 'h':
           case 'H':
             this.showHelp()
@@ -144,26 +152,16 @@ export class InteractiveInput {
     const { player } = gameState
     
     const title = chalk.bold.cyan('🎮 ═══ CHOOSE YOUR ACTION ═══ 🎮')
-    const cardSelection = this.cardDisplay.renderCardSelection([...player.hand], gameState, selectedIndex)
+    const cardSelection = this.cardDisplay.renderCardSelection([...player.hand], gameState, selectedIndex, this.displayMode)
     
     const energyDisplay = chalk.yellow(`⚡ Energy: ${player.energy}/${player.maxEnergy}`)
-    const instructions = [
-      chalk.dim('Navigation:'),
-      chalk.cyan('↑↓←→') + chalk.dim(' or ') + chalk.cyan('1-9') + chalk.dim(' - Select card'),
-      chalk.cyan('Enter') + chalk.dim(' - Play selected card'),
-      chalk.cyan('E') + chalk.dim(' - End turn'),
-      chalk.cyan('H') + chalk.dim(' - Help'),
-      chalk.cyan('Q') + chalk.dim(' - Quit')
-    ].join('\n')
     
     return [
       title,
       '',
       energyDisplay,
       '',
-      cardSelection,
-      '',
-      instructions
+      cardSelection
     ].join('\n')
   }
 

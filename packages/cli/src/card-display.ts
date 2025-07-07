@@ -2,25 +2,38 @@ import chalk from 'chalk'
 import boxen from 'boxen'
 import type { Card, GameState } from '@effect-deck/core'
 import { canPlayCardSync } from '@effect-deck/core'
+import { 
+  type TextDisplayMode, 
+  DISPLAY_MODE_CONFIGS, 
+  smartTruncate, 
+  calculateCardWidth 
+} from './text-display-mode'
 
 export class CardDisplay {
   
   /**
    * Render a single card as a beautiful ASCII card
    */
-  renderCard(card: Card, gameState: GameState, selected = false): string {
+  renderCard(
+    card: Card, 
+    gameState: GameState, 
+    selected = false, 
+    displayMode: TextDisplayMode = 'normal'
+  ): string {
     const playable = canPlayCardSync(card, gameState.player)
     const cardColor = this.getCardColor(card.type, playable)
     const borderColor = selected ? 'yellow' : (playable ? 'green' : 'red')
     
+    const config = DISPLAY_MODE_CONFIGS[displayMode]
     const cardArt = this.getCardArt(card.type)
     const costIcon = this.getCostIcon(card.cost)
     
-    // Truncate name if too long and pad description to consistent length
-    const cardName = card.name.length > 12 ? card.name.substring(0, 12) : card.name
-    const description = card.description.length > 18 ? 
-      card.description.substring(0, 15) + '...' : 
-      card.description
+    // Apply smart truncation based on display mode
+    const cardName = smartTruncate(card.name, config.maxNameLength, displayMode)
+    const description = smartTruncate(card.description, config.maxDescLength, displayMode)
+    
+    // Calculate card width
+    const cardWidth = calculateCardWidth(card.name, card.description, displayMode)
     
     const cardContent = [
       chalk.bold(cardColor(cardName.toUpperCase())),
@@ -32,32 +45,46 @@ export class CardDisplay {
       `${costIcon} ${chalk.bold(card.cost)} Energy`
     ].join('\n')
 
-    return boxen(cardContent, {
+    const boxenOptions: any = {
       padding: 1,
       margin: { top: 0, bottom: 0, left: 1, right: 1 },
       borderStyle: selected ? 'double' : 'round',
       borderColor: borderColor as any,
-      textAlignment: 'center',
-      width: 20
-    })
+      textAlignment: 'center'
+    }
+    
+    // Only set width for non-full modes
+    if (displayMode !== 'full') {
+      boxenOptions.width = cardWidth
+    }
+
+    return boxen(cardContent, boxenOptions)
   }
 
   /**
    * Render multiple cards in a hand layout
    */
-  renderHand(cards: Card[], gameState: GameState, selectedIndex = -1): string {
+  renderHand(
+    cards: Card[], 
+    gameState: GameState, 
+    selectedIndex = -1, 
+    displayMode: TextDisplayMode = 'normal'
+  ): string {
     if (cards.length === 0) {
       return chalk.dim('No cards in hand')
     }
 
     const cardDisplays = cards.map((card, index) => 
-      this.renderCard(card, gameState, index === selectedIndex)
+      this.renderCard(card, gameState, index === selectedIndex, displayMode)
     )
 
-    // Split into rows of 4 cards maximum
+    // Adjust cards per row based on display mode
+    const cardsPerRow = displayMode === 'full' ? 2 : displayMode === 'normal' ? 3 : 4
+    
+    // Split into rows
     const rows: string[][] = []
-    for (let i = 0; i < cardDisplays.length; i += 4) {
-      rows.push(cardDisplays.slice(i, i + 4))
+    for (let i = 0; i < cardDisplays.length; i += cardsPerRow) {
+      rows.push(cardDisplays.slice(i, i + cardsPerRow))
     }
 
     return rows.map(row => this.combineCardsHorizontally(row)).join('\n\n')
@@ -164,21 +191,31 @@ export class CardDisplay {
   /**
    * Create a card selection prompt display with detailed view
    */
-  renderCardSelection(cards: Card[], gameState: GameState, hoveredIndex: number): string {
+  renderCardSelection(
+    cards: Card[], 
+    gameState: GameState, 
+    hoveredIndex: number, 
+    displayMode: TextDisplayMode = 'normal'
+  ): string {
     const title = chalk.bold.cyan('🃏 Select a Card to Play 🃏')
-    const handDisplay = this.renderHand(cards, gameState, hoveredIndex)
+    const handDisplay = this.renderHand(cards, gameState, hoveredIndex, displayMode)
     
     // Show detailed view of selected card
     const selectedCard = cards[hoveredIndex]
     const cardDetails = selectedCard ? this.renderCardDetails(selectedCard, gameState) : ''
     
+    // Display mode indicator and instructions
+    const modeConfig = DISPLAY_MODE_CONFIGS[displayMode]
+    const modeIndicator = chalk.yellow(`[${displayMode.toUpperCase()} MODE] ${modeConfig.description}`)
+    
     const instructions = [
-      chalk.dim('Navigation: ↑/↓ or 1-9 to select, Enter to play, E to end turn, Q to quit'),
+      chalk.dim('Navigation: ↑/↓ or 1-9 to select, Enter to play, T to toggle display, E to end turn, Q to quit'),
       ''
     ].join('\n')
 
     return [
       title, 
+      modeIndicator,
       '', 
       handDisplay, 
       '', 
