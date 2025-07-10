@@ -5,19 +5,28 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "bin": {
-    "effect-deck": "./dist/cli.js"
+    "effect-deck": "./dist/flashy-cli.js"
   },
   "scripts": {
     "build": "tsc",
     "test": "echo 'No tests yet for CLI package'",
     "dev": "tsc --watch",
-    "start": "node dist/cli.js",
-    "start:effect": "node dist/cli-effect.js"
+    "start": "node dist/flashy-cli.js",
+    "start:basic": "node dist/cli.js",
+    "start:effect": "node dist/cli-effect.js",
+    "start:flashy": "node dist/flashy-cli.js"
   },
   "dependencies": {
     "@effect-deck/core": "file:../core",
     "@oclif/core": "^4.4.0",
-    "inquirer": "^12.6.3"
+    "inquirer": "^12.6.3",
+    "chalk": "^4.1.2",
+    "boxen": "^5.1.2",
+    "gradient-string": "^2.0.2",
+    "figlet": "^1.7.0",
+    "cli-table3": "^0.6.5",
+    "ora": "^5.4.1",
+    "terminal-kit": "^3.1.1"
   },
   "peerDependencies": {
     "effect": "^3.16.10"
