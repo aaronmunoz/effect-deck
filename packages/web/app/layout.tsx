@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, JetBrains_Mono } from 'next/font/google'
 import './globals.css'
 
@@ -17,6 +17,9 @@ export const metadata: Metadata = {
   description: 'A strategic card game built with Effect-TS',
   keywords: ['card game', 'strategy', 'effect-ts', 'typescript'],
   authors: [{ name: 'Effect Deck Team' }],
+}
+
+export const viewport: Viewport = {
   themeColor: '#0a0a0a',
 }
 
