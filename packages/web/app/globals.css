@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 142 100% 50%;
+    --primary-foreground: 222.2 84% 4.9%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 142 100% 50%;
+    --radius: 0.5rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+}
+
+@layer components {
+  .game-card {
+    @apply bg-game-card border border-game-border rounded-lg p-4 shadow-lg;
+    @apply hover:border-game-accent transition-colors duration-300;
+  }
+  
+  .game-card-selected {
+    @apply border-game-accent shadow-[0_0_15px_rgba(0,255,65,0.3)];
+  }
+  
+  .game-button {
+    @apply bg-game-card border border-game-border rounded-md px-4 py-2;
+    @apply hover:border-game-accent hover:bg-game-accent/10 transition-all duration-300;
+    @apply font-mono text-sm;
+  }
+  
+  .game-button-primary {
+    @apply bg-game-accent text-game-bg border-game-accent;
+    @apply hover:bg-game-accent/90 hover:shadow-[0_0_10px_rgba(0,255,65,0.5)];
+  }
+  
+  .health-bar {
+    @apply bg-game-border rounded-full h-2 overflow-hidden;
+  }
+  
+  .health-fill {
+    @apply h-full bg-gradient-to-r from-game-danger to-game-success transition-all duration-500;
+  }
+  
+  .energy-orb {
+    @apply w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold;
+    @apply transition-all duration-300;
+  }
+  
+  .energy-available {
+    @apply bg-game-info border-game-info text-white shadow-[0_0_8px_rgba(0,153,255,0.6)];
+  }
+  
+  .energy-used {
+    @apply bg-game-border border-game-border text-muted-foreground;
+  }
+  
+  .card-type-attack {
+    @apply border-attack;
+  }
+  
+  .card-type-defense {
+    @apply border-defense;
+  }
+  
+  .card-type-context {
+    @apply border-context;
+  }
+  
+  .card-type-dependent {
+    @apply border-dependent;
+  }
+  
+  .glow-effect {
+    @apply animate-glow;
+  }
+  
+  .terminal-text {
+    @apply font-mono text-game-accent;
+  }
+}
