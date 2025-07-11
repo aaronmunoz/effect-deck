@@ -1,10 +1,16 @@
 'use client'
 
-import { useState, useCallback, useEffect } from 'react'
+import { useState, useCallback } from 'react'
 import { Effect } from 'effect'
 import type { GameState, GameAction, GameResponse } from '@effect-deck/core'
 import { AppLayer } from '@effect-deck/core'
 import { GameEngine } from '@effect-deck/core'
+
+// Extended GameAction type to handle card index for web interface
+export type WebGameAction = 
+  | { type: 'play_card'; cardIndex: number; targetId?: string }
+  | { type: 'end_turn' }
+  | { type: 'start_game' }
 
 export function useGameState() {
   const [gameState, setGameState] = useState<GameState | null>(null)
@@ -19,8 +25,7 @@ export function useGameState() {
       const program = Effect.gen(function* () {
         const engine = yield* GameEngine
         const response = yield* engine.startNewGame()
-        const newGameState = yield* engine.getGameState()
-        return { response, gameState: newGameState }
+        return response
       })
 
       const result = await Effect.runPromise(Effect.provide(program, AppLayer))
@@ -32,23 +37,38 @@ export function useGameState() {
     }
   }, [])
 
-  const processAction = useCallback(async (action: GameAction) => {
+  const processAction = useCallback(async (action: WebGameAction) => {
     if (!gameState) return
 
     setIsLoading(true)
     setError(null)
 
     try {
+      // Convert web action to core action
+      let coreAction: GameAction
+      if (action.type === 'play_card') {
+        const card = gameState.player.hand[action.cardIndex]
+        if (!card) {
+          throw new Error('Card not found in hand')
+        }
+        coreAction = {
+          type: 'play_card',
+          cardId: card.id,
+          targetId: action.targetId,
+        }
+      } else {
+        coreAction = action
+      }
+
       const program = Effect.gen(function* () {
         const engine = yield* GameEngine
-        const response = yield* engine.processAction(action)
-        const newGameState = yield* engine.getGameState()
-        return { response, gameState: newGameState }
+        const response = yield* engine.processAction(coreAction)
+        return response
       })
 
       const result = await Effect.runPromise(Effect.provide(program, AppLayer))
       setGameState(result.gameState)
-      return result.response
+      return result
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to process action')
       throw err

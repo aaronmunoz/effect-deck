@@ -3,16 +3,16 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import { Play, Settings, Info } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export default function HomePage() {
   const [isStarting, setIsStarting] = useState(false)
+  const router = useRouter()
 
   const handleStartGame = () => {
     setIsStarting(true)
-    // TODO: Navigate to game or initialize game state
-    setTimeout(() => {
-      setIsStarting(false)
-    }, 2000)
+    // Navigate to game page
+    router.push('/game')
   }
 
   return (
