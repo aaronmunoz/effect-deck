@@ -6,6 +6,10 @@ tmp
 out-tsc
 *.tsbuildinfo
 
+# Next.js
+.next/
+out/
+
 # dependencies
 node_modules
 package-lock.json
