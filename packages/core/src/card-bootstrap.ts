@@ -431,8 +431,11 @@ const createExecuteAlgorithmEffect = (gameEffects: GameEffects): CardEffect => (
 // Bootstrap layer that registers all card effects
 export const CardBootstrapLayer = Layer.effectDiscard(
   Effect.gen(function* () {
+    console.log('CardBootstrapLayer: Starting card registration...')
     const registry = yield* CardRegistry
     const gameEffects = yield* GameEffects
+    
+    console.log('CardBootstrapLayer: Got registry and gameEffects')
     
     // Register all card effects
     const strikeEffect = createStrikeEffect(gameEffects)
@@ -458,6 +461,9 @@ export const CardBootstrapLayer = Layer.effectDiscard(
     yield* registry.registerEffect('precise_strike', preciseStrikeEffect)
     yield* registry.registerEffect('wild_strike', wildStrikeEffect)
     
+    // Debug: Log registered cards
+    console.log('Registered attack cards:', ['strike', 'heavy_strike', 'quick_strike', 'precise_strike', 'wild_strike'])
+    
     // Defense Cards
     yield* registry.registerEffect('block', blockEffect)
     yield* registry.registerEffect('shield_up', shieldUpEffect)
@@ -473,5 +479,7 @@ export const CardBootstrapLayer = Layer.effectDiscard(
     yield* registry.registerEffect('overclock_attack', overclockAttackEffect)
     yield* registry.registerEffect('shield_slam', shieldSlamEffect)
     yield* registry.registerEffect('execute_algorithm', executeAlgorithmEffect)
+    
+    console.log('CardBootstrapLayer: Finished registering all card effects')
   })
 )

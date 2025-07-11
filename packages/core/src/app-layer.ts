@@ -11,16 +11,20 @@ const BaseServicesLayer = Layer.mergeAll(
 )
 
 // Then provide services that depend on the base services
+// GameEngineLayer needs CardRegistry, so we need to provide it properly
 const GameWithCardsLayer = Layer.provide(
+  GameEngineLayer,
   Layer.mergeAll(
-    GameEngineLayer,
+    BaseServicesLayer,
     CardBootstrapLayer
-  ),
-  BaseServicesLayer
+  )
 )
 
-// Complete application layer that provides all services
-export const AppLayer = Layer.merge(
+// Complete application layer that provides ALL required services
+export const AppLayer = Layer.mergeAll(
   GameWithCardsLayer,
   BaseServicesLayer
 )
+
+// Debug: Let's explicitly list what services this layer should provide
+// It should provide: GameEngine, GameStateRef, CardRegistry, GameEffects

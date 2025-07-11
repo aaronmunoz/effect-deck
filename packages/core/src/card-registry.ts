@@ -3,9 +3,9 @@ import type { CardRegistry, CardEffect } from './card-effects'
 import { CardRegistry as CardRegistryTag } from './card-effects'
 import { CardNotFound } from './errors'
 
-// Card registry implementation
+// Card registry implementation using scoped layer for proper DI
 export const CardRegistryLive: Layer.Layer<CardRegistry> = 
-  Layer.effect(
+  Layer.scoped(
     CardRegistryTag,
     Effect.gen(function* () {
       const effects = yield* Ref.make(new Map<string, CardEffect>())
@@ -17,9 +17,11 @@ export const CardRegistryLive: Layer.Layer<CardRegistry> =
             const effect = effectMap.get(cardId)
             
             if (!effect) {
+              const availableCards = Array.from(effectMap.keys())
+              console.log(`Card '${cardId}' not found. Available cards:`, availableCards)
               return yield* Effect.fail(new CardNotFound({
                 cardId,
-                availableCards: Array.from(effectMap.keys())
+                availableCards
               }))
             }
             
@@ -33,6 +35,7 @@ export const CardRegistryLive: Layer.Layer<CardRegistry> =
         
         registerEffect: (cardId, effect) =>
           Effect.gen(function* () {
+            console.log(`Registering effect for card: ${cardId}`)
             yield* Ref.update(effects, map => new Map(map.set(cardId, effect)))
           })
       }
