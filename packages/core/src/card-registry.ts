@@ -18,7 +18,6 @@ export const CardRegistryLive: Layer.Layer<CardRegistry> =
             
             if (!effect) {
               const availableCards = Array.from(effectMap.keys())
-              console.log(`Card '${cardId}' not found. Available cards:`, availableCards)
               return yield* Effect.fail(new CardNotFound({
                 cardId,
                 availableCards
@@ -35,7 +34,6 @@ export const CardRegistryLive: Layer.Layer<CardRegistry> =
         
         registerEffect: (cardId, effect) =>
           Effect.gen(function* () {
-            console.log(`Registering effect for card: ${cardId}`)
             yield* Ref.update(effects, map => new Map(map.set(cardId, effect)))
           })
       }

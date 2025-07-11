@@ -3,8 +3,7 @@
 import { useState, useCallback } from 'react'
 import { Effect } from 'effect'
 import type { GameState, GameAction, GameResponse } from '@effect-deck/core'
-import { AppLayer } from '@effect-deck/core'
-import { GameEngine } from '@effect-deck/core'
+import { AppLayer, GameEngine } from '@effect-deck/core'
 
 // Extended GameAction type to handle card index for web interface
 export type WebGameAction = 
@@ -24,13 +23,13 @@ export function useGameState() {
     try {
       const program = Effect.gen(function* () {
         const engine = yield* GameEngine
-        const response = yield* engine.startNewGame()
-        return response
+        return yield* engine.startNewGame()
       })
 
       const result = await Effect.runPromise(Effect.provide(program, AppLayer))
       setGameState(result.gameState)
     } catch (err) {
+      console.error('Game initialization error:', err)
       setError(err instanceof Error ? err.message : 'Failed to initialize game')
     } finally {
       setIsLoading(false)
@@ -62,15 +61,16 @@ export function useGameState() {
 
       const program = Effect.gen(function* () {
         const engine = yield* GameEngine
-        const response = yield* engine.processAction(coreAction)
-        return response
+        return yield* engine.processAction(coreAction)
       })
 
       const result = await Effect.runPromise(Effect.provide(program, AppLayer))
       setGameState(result.gameState)
       return result
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to process action')
+      console.error('Action processing error:', err)
+      const errorMessage = err instanceof Error ? err.message : 'Failed to process action'
+      setError(errorMessage)
       throw err
     } finally {
       setIsLoading(false)
