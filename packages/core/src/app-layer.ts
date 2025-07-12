@@ -20,25 +20,22 @@ const CoreServicesLayer = Layer.mergeAll(
   GameEffectsLive
 )
 
-// Phase 2: Initialization Layer (depends on core services)
-// This must complete BEFORE any service tries to use the registry
-const InitializationLayer = Layer.provide(
-  CardBootstrapLayer,
+// Phase 2: Core Services + Bootstrap (ensures cards are registered)
+const BootstrappedServicesLayer = Layer.provide(
+  Layer.mergeAll(
+    CoreServicesLayer,
+    CardBootstrapLayer
+  ),
   CoreServicesLayer
 )
 
-// Phase 3: Application Services (depends on initialized registry)
-const ApplicationServicesLayer = Layer.provide(
-  GameEngineLayer,
-  CoreServicesLayer
-)
-
-// Phase 4: Complete Application Layer
-// Uses Layer.tapErrorCause for better debugging
-export const AppLayer = Layer.mergeAll(
-  CoreServicesLayer,
-  InitializationLayer,
-  ApplicationServicesLayer
+// Phase 3: Complete Application Layer with all services
+export const AppLayer = Layer.provide(
+  Layer.mergeAll(
+    BootstrappedServicesLayer,
+    GameEngineLayer
+  ),
+  BootstrappedServicesLayer
 ).pipe(
   Layer.tapErrorCause((cause) => 
     Effect.logError("AppLayer initialization failed", cause)

@@ -8,6 +8,10 @@
     "lint:fix": "eslint . --ext .ts,.tsx,.js,.jsx --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "clean": "rimraf packages/*/dist packages/*/node_modules packages/*/.next packages/*/tsconfig.tsbuildinfo node_modules && npm install",
+    "clean:all": "npm run clean && rimraf .nx/cache",
+    "clean:dist": "rimraf packages/*/dist packages/*/tsconfig.tsbuildinfo",
+    "clean:deps": "rimraf packages/*/node_modules node_modules && npm install",
     "build": "npm run build --workspaces",
     "build:core": "npm run build --workspace=@effect-deck/core",
     "build:cli": "npm run build --workspace=@effect-deck/cli",
@@ -31,6 +35,7 @@
   },
   "private": true,
   "devDependencies": {
+    "@nx/eslint-plugin": "^21.2.3",
     "@nx/js": "21.2.1",
     "@swc-node/register": "~1.9.1",
     "@swc/core": "~1.5.7",
@@ -42,6 +47,7 @@
     "lint-staged": "^16.1.2",
     "nx": "21.2.1",
     "prettier": "^2.6.2",
+    "rimraf": "^6.0.1",
     "tslib": "^2.3.0",
     "typescript": "~5.8.2"
   },

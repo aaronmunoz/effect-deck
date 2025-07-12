@@ -3,38 +3,38 @@ import type { CardRegistry, CardEffect } from './card-effects'
 import { CardRegistry as CardRegistryTag } from './card-effects'
 import { CardNotFound } from './errors'
 
-// Card registry implementation using scoped layer for proper DI
+// Card registry implementation - starts empty, populated by CardBootstrapLayer
 export const CardRegistryLive: Layer.Layer<CardRegistry> = 
-  Layer.scoped(
+  Layer.effect(
     CardRegistryTag,
-    Effect.gen(function* () {
-      const effects = yield* Ref.make(new Map<string, CardEffect>())
+    Effect.gen(function* (_) {
+      const effects = yield* _(Ref.make(new Map<string, CardEffect>()))
       
       return {
-        getEffect: (cardId) =>
-          Effect.gen(function* () {
-            const effectMap = yield* Ref.get(effects)
+        getEffect: (cardId: string) =>
+          Effect.gen(function* (_) {
+            const effectMap = yield* _(Ref.get(effects))
             const effect = effectMap.get(cardId)
             
             if (!effect) {
               const availableCards = Array.from(effectMap.keys())
-              return yield* Effect.fail(new CardNotFound({
+              return yield* _(Effect.fail(new CardNotFound({
                 cardId,
                 availableCards
-              }))
+              })))
             }
             
             return effect
           }),
         
         getAllEffects: () =>
-          Effect.gen(function* () {
-            return yield* Ref.get(effects)
+          Effect.gen(function* (_) {
+            return yield* _(Ref.get(effects))
           }),
         
-        registerEffect: (cardId, effect) =>
-          Effect.gen(function* () {
-            yield* Ref.update(effects, map => new Map(map.set(cardId, effect)))
+        registerEffect: (cardId: string, effect: CardEffect) =>
+          Effect.gen(function* (_) {
+            yield* _(Ref.update(effects, map => new Map(map.set(cardId, effect))))
           })
       }
     })
@@ -44,10 +44,10 @@ export const CardRegistryLive: Layer.Layer<CardRegistry> =
 export const registerEffects = (
   effects: Array<CardEffect>
 ): Effect.Effect<void, never, CardRegistry> =>
-  Effect.gen(function* () {
-    const registry = yield* CardRegistryTag
+  Effect.gen(function* (_) {
+    const registry = yield* _(CardRegistryTag)
     
     for (const effect of effects) {
-      yield* registry.registerEffect(effect.metadata.id, effect)
+      yield* _(registry.registerEffect(effect.metadata.id, effect))
     }
   })

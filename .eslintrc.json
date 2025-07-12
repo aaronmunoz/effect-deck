@@ -6,8 +6,8 @@
     {
       "files": ["*.ts", "*.tsx", "*.js", "*.jsx"],
       "extends": [
-        "@typescript-eslint/recommended",
-        "@typescript-eslint/recommended-requiring-type-checking"
+        "plugin:@typescript-eslint/recommended",
+        "plugin:@typescript-eslint/recommended-requiring-type-checking"
       ],
       "parserOptions": {
         "project": "./tsconfig.base.json"
@@ -16,7 +16,6 @@
         "@nx/enforce-module-boundaries": [
           "error",
           {
-            "enforceBuildableLibDependencyRules": true,
             "allow": [],
             "depConstraints": [
               {

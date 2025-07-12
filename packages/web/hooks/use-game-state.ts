@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useCallback } from 'react'
-import { Effect } from 'effect'
-import type { GameState, GameAction, GameResponse } from '@effect-deck/core'
-import { AppLayer, GameEngine } from '@effect-deck/core'
+import { useState, useCallback, useEffect } from 'react'
+import type { GameState } from '@effect-deck/core'
+import { gameBackend } from '../services/game-backend'
 
 // Extended GameAction type to handle card index for web interface
 export type WebGameAction = 
@@ -15,58 +14,71 @@ export function useGameState() {
   const [gameState, setGameState] = useState<GameState | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [isInitialized, setIsInitialized] = useState(false)
+
+  // Subscribe to backend state changes when the hook mounts
+  useEffect(() => {
+    // Check if backend is ready
+    setIsInitialized(gameBackend.isReady())
+    
+    // Subscribe to state changes from backend
+    const unsubscribe = gameBackend.subscribe((newState) => {
+      setGameState(newState)
+    })
+
+    // Get initial state if available
+    const currentState = gameBackend.getCurrentState()
+    if (currentState) {
+      setGameState(currentState)
+    }
+
+    return unsubscribe
+  }, [])
 
   const initializeGame = useCallback(async () => {
+    if (!isInitialized) {
+      setError('Game backend not ready')
+      return
+    }
+
     setIsLoading(true)
     setError(null)
     
     try {
-      const program = Effect.gen(function* () {
-        const engine = yield* GameEngine
-        return yield* engine.startNewGame()
-      })
-
-      const result = await Effect.runPromise(Effect.provide(program, AppLayer))
-      setGameState(result.gameState)
+      await gameBackend.startNewGame()
+      // State will be updated via subscription
     } catch (err) {
       console.error('Game initialization error:', err)
-      setError(err instanceof Error ? err.message : 'Failed to initialize game')
+      setError(err instanceof Error ? err.message : 'Failed to start new game')
     } finally {
       setIsLoading(false)
     }
-  }, [])
+  }, [isInitialized])
 
   const processAction = useCallback(async (action: WebGameAction) => {
-    if (!gameState) return
+    if (!gameState || !isInitialized) {
+      setError('Game not ready')
+      return
+    }
 
     setIsLoading(true)
     setError(null)
 
     try {
-      // Convert web action to core action
-      let coreAction: GameAction
       if (action.type === 'play_card') {
         const card = gameState.player.hand[action.cardIndex]
         if (!card) {
           throw new Error('Card not found in hand')
         }
-        coreAction = {
-          type: 'play_card',
-          cardId: card.id,
-          targetId: action.targetId,
-        }
-      } else {
-        coreAction = action
+        
+        await gameBackend.playCard(card.id, action.targetId)
+      } else if (action.type === 'end_turn') {
+        await gameBackend.endTurn()
+      } else if (action.type === 'start_game') {
+        await gameBackend.startNewGame()
       }
-
-      const program = Effect.gen(function* () {
-        const engine = yield* GameEngine
-        return yield* engine.processAction(coreAction)
-      })
-
-      const result = await Effect.runPromise(Effect.provide(program, AppLayer))
-      setGameState(result.gameState)
-      return result
+      
+      // State will be updated via subscription
     } catch (err) {
       console.error('Action processing error:', err)
       const errorMessage = err instanceof Error ? err.message : 'Failed to process action'
@@ -75,12 +87,13 @@ export function useGameState() {
     } finally {
       setIsLoading(false)
     }
-  }, [gameState])
+  }, [gameState, isInitialized])
 
   return {
     gameState,
     isLoading,
     error,
+    isInitialized,
     initializeGame,
     processAction,
   }
