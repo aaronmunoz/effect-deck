@@ -29,7 +29,7 @@ export const GameEffectsLive: Layer.Layer<GameEffects> =
     
     addContext: (player, context) =>
       Effect.succeed({
-        ...player,
+      ...player,
         contexts: player.contexts.includes(context) 
           ? player.contexts 
           : [...player.contexts, context],

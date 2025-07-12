@@ -4,7 +4,7 @@ import { GameEffects } from './card-effects'
 import { InsufficientEnergy, RequiredContextMissing } from './errors'
 
 // Create individual card effects with proper typing
-const createStrikeEffect = (gameEffects: GameEffects): CardEffect => ({
+export const createStrikeEffect = (gameEffects: GameEffects): CardEffect => ({
   execute: (gameState, cardId, targetId) =>
     Effect.gen(function* () {
       if (!gameState.enemy) return gameState
