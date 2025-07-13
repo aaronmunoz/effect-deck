@@ -10,6 +10,7 @@ interface CardProps {
   isPlayable?: boolean
   onClick?: () => void
   className?: string
+  isPlaying?: boolean
 }
 
 export function GameCard({ 
@@ -17,7 +18,8 @@ export function GameCard({
   isSelected = false, 
   isPlayable = true, 
   onClick, 
-  className 
+  className,
+  isPlaying = false
 }: CardProps) {
   return (
     <motion.div
@@ -37,14 +39,24 @@ export function GameCard({
         },
         className
       )}
-      whileHover={isPlayable ? { 
+      whileHover={isPlayable && !isPlaying ? { 
         scale: 1.02,
         rotateY: 2,
         rotateX: -2
       } : {}}
-      whileTap={isPlayable ? { scale: 0.98 } : {}}
+      whileTap={isPlayable && !isPlaying ? { scale: 0.98 } : {}}
+      animate={isPlaying ? {
+        scale: [1, 1.1, 0.9, 1.2, 0],
+        rotateY: [0, 15, -15, 0],
+        opacity: [1, 1, 1, 0.8, 0]
+      } : {
+        opacity: 1, 
+        y: 0, 
+        rotateX: 0,
+        scale: 1,
+        rotateY: 0
+      }}
       initial={{ opacity: 0, y: 20, rotateX: -10 }}
-      animate={{ opacity: 1, y: 0, rotateX: 0 }}
       exit={{ opacity: 0, y: -20, scale: 0.9 }}
       transition={{ 
         duration: 0.4,

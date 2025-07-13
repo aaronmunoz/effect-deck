@@ -135,4 +135,15 @@
   .slide-up {
     @apply animate-slide-up;
   }
+  
+  /* Battle animations */
+  @keyframes damage-shake {
+    0%, 100% { transform: translateX(0); }
+    10%, 30%, 50%, 70%, 90% { transform: translateX(-2px); }
+    20%, 40%, 60%, 80% { transform: translateX(2px); }
+  }
+
+  .damage-shake {
+    animation: damage-shake 0.4s ease-out;
+  }
 }
