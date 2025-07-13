@@ -4,7 +4,8 @@ import { useState, useEffect } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, RotateCcw, Pause } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useGameState, type WebGameAction } from '@/hooks/use-game-state'
+import { useGameState } from '@/hooks/use-game-state'
+import { cn } from '@/lib/utils'
 import { PlayerStatus } from '@/components/player-status'
 import { EnemyStatus } from '@/components/enemy-status'
 import { GameCard } from '@/components/card'
@@ -117,13 +118,13 @@ export default function GamePage() {
       </motion.div>
 
       {/* Main Game Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 h-[calc(100vh-120px)]">
+      <div className="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-3 gap-4 lg:gap-6 h-[calc(100vh-120px)] max-w-7xl mx-auto">
         {/* Left Panel - Player Status */}
         <motion.div
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
-          className="lg:col-span-1"
+          className="xl:col-span-1 lg:col-span-1 order-2 lg:order-1"
         >
           <PlayerStatus player={gameState.player} />
         </motion.div>
@@ -133,7 +134,7 @@ export default function GamePage() {
           initial={{ opacity: 0, scale: 0.95 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ delay: 0.3 }}
-          className="lg:col-span-2 flex flex-col"
+          className="xl:col-span-2 lg:col-span-2 col-span-1 flex flex-col order-1 lg:order-2"
         >
           {/* Enemy Area */}
           <div className="flex-1 flex items-start justify-center p-4">
@@ -142,23 +143,41 @@ export default function GamePage() {
 
           {/* Battle Effects Area */}
           <div className="flex-1 flex items-center justify-center relative">
-            <div className="text-center">
-              <div className="text-6xl mb-4">⚔️</div>
-              <div className="terminal-text text-lg">
+            <motion.div 
+              className="text-center"
+              initial={{ scale: 0.8, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ delay: 0.5, type: "spring" }}
+            >
+              <motion.div 
+                className="text-4xl lg:text-6xl mb-2 lg:mb-4"
+                animate={{ 
+                  rotate: [0, -10, 10, 0],
+                  scale: [1, 1.1, 1]
+                }}
+                transition={{ 
+                  duration: 2,
+                  repeat: Infinity,
+                  repeatType: "reverse"
+                }}
+              >
+                ⚔️
+              </motion.div>
+              <div className="terminal-text text-base lg:text-lg font-semibold">
                 {gameState.phase === 'action' ? 'Your Turn' : 
                  gameState.phase === 'enemy' ? 'Enemy Turn' : 
                  gameState.phase === 'draw' ? 'Draw Phase' : 'Cleanup'}
               </div>
-            </div>
+            </motion.div>
           </div>
 
           {/* Player Hand */}
-          <div className="flex-1 flex items-end justify-center p-4">
-            <div className="w-full max-w-4xl">
-              <div className="text-center mb-4">
-                <span className="terminal-text font-mono">Your Hand</span>
+          <div className="flex-1 flex items-end justify-center p-2 lg:p-4">
+            <div className="w-full max-w-5xl">
+              <div className="text-center mb-3 lg:mb-4">
+                <span className="terminal-text font-mono text-sm lg:text-base">Your Hand</span>
               </div>
-              <div className="flex justify-center gap-2 overflow-x-auto pb-4">
+              <div className="flex justify-center gap-1 sm:gap-2 lg:gap-3 overflow-x-auto pb-4 px-2">
                 <AnimatePresence mode="popLayout">
                   {gameState.player.hand.map((card, index) => (
                     <motion.div
@@ -175,7 +194,11 @@ export default function GamePage() {
                         isSelected={selectedCardIndex === index}
                         isPlayable={card.cost <= gameState.player.energy}
                         onClick={() => handleCardSelect(index)}
-                        className="w-40 h-56 text-sm"
+                        className={cn(
+                          "transition-all duration-200",
+                          "w-32 h-44 text-xs sm:w-36 sm:h-50 sm:text-sm",
+                          "lg:w-40 lg:h-56 lg:text-sm xl:w-44 xl:h-60"
+                        )}
                       />
                     </motion.div>
                   ))}
@@ -190,7 +213,7 @@ export default function GamePage() {
           initial={{ opacity: 0, x: 50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.4 }}
-          className="lg:col-span-1 flex flex-col gap-4"
+          className="xl:col-span-1 lg:col-span-1 col-span-1 flex flex-col gap-3 lg:gap-4 order-3"
         >
           {/* Action Buttons */}
           <ActionButtons

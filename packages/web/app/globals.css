@@ -38,8 +38,9 @@
 
 @layer components {
   .game-card {
-    @apply bg-game-card border border-game-border rounded-lg p-4 shadow-lg;
-    @apply hover:border-game-accent transition-colors duration-300;
+    @apply bg-game-card/90 border-2 border-game-border rounded-lg p-4 shadow-lg;
+    @apply backdrop-blur-sm transition-all duration-300 ease-out;
+    @apply hover:shadow-xl hover:shadow-black/20;
   }
   
   .game-card-selected {
@@ -47,14 +48,16 @@
   }
   
   .game-button {
-    @apply bg-game-card border border-game-border rounded-md px-4 py-2;
-    @apply hover:border-game-accent hover:bg-game-accent/10 transition-all duration-300;
-    @apply font-mono text-sm;
+    @apply bg-game-card/80 border border-game-border rounded-md px-4 py-2;
+    @apply hover:border-game-accent hover:bg-game-accent/10 hover:shadow-md;
+    @apply transition-all duration-300 ease-out backdrop-blur-sm;
+    @apply font-mono text-sm active:scale-95;
   }
   
   .game-button-primary {
     @apply bg-game-accent text-game-bg border-game-accent;
-    @apply hover:bg-game-accent/90 hover:shadow-[0_0_10px_rgba(0,255,65,0.5)];
+    @apply hover:bg-game-accent/90 hover:shadow-[0_0_15px_rgba(0,255,65,0.5)];
+    @apply hover:scale-105 active:scale-95 transition-all duration-200;
   }
   
   .health-bar {
@@ -67,11 +70,13 @@
   
   .energy-orb {
     @apply w-8 h-8 rounded-full border-2 flex items-center justify-center text-xs font-bold;
-    @apply transition-all duration-300;
+    @apply transition-all duration-300 hover:scale-110 active:scale-95;
+    @apply shadow-md backdrop-blur-sm;
   }
   
   .energy-available {
-    @apply bg-game-info border-game-info text-white shadow-[0_0_8px_rgba(0,153,255,0.6)];
+    @apply bg-game-info border-game-info text-white shadow-[0_0_12px_rgba(0,153,255,0.6)];
+    @apply hover:shadow-[0_0_16px_rgba(0,153,255,0.8)];
   }
   
   .energy-used {
@@ -99,6 +104,35 @@
   }
   
   .terminal-text {
-    @apply font-mono text-game-accent;
+    @apply font-mono text-game-accent drop-shadow-sm;
+    @apply hover:text-game-accent/80 transition-colors duration-200;
+  }
+
+  /* Enhanced button states */
+  .game-button:disabled {
+    @apply opacity-50 cursor-not-allowed hover:scale-100 hover:border-game-border;
+  }
+
+  /* Smooth focus states */
+  .game-button:focus-visible {
+    @apply outline-none ring-2 ring-game-accent/50 ring-offset-2 ring-offset-game-bg;
+  }
+
+  .game-card:focus-visible {
+    @apply outline-none ring-2 ring-game-accent/50 ring-offset-2 ring-offset-game-bg;
+  }
+
+  /* Loading states */
+  .loading-pulse {
+    @apply animate-pulse;
+  }
+
+  /* Subtle animations */
+  .fade-in {
+    @apply animate-fade-in;
+  }
+
+  .slide-up {
+    @apply animate-slide-up;
   }
 }
