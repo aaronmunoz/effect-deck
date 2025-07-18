@@ -1,25 +1,66 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { ArrowLeft, RotateCcw, Pause } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useGameState } from '@/hooks/use-game-state'
+import { useBattleEffects, battleAnimations } from '@/hooks/use-battle-effects'
 import { cn } from '@/lib/utils'
 import { PlayerStatus } from '@/components/player-status'
 import { EnemyStatus } from '@/components/enemy-status'
 import { GameCard } from '@/components/card'
 import { GameLog } from '@/components/game-log'
 import { ActionButtons } from '@/components/action-buttons'
+import { BattleEffects } from '@/components/battle-effects'
 
 export default function GamePage() {
   const router = useRouter()
   const { gameState, isLoading, error, initializeGame, processAction } = useGameState()
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null)
+  const [playingCardIndex, setPlayingCardIndex] = useState<number | null>(null)
+  const battleEffects = useBattleEffects()
+  const playerRef = useRef<HTMLDivElement>(null)
+  const enemyRef = useRef<HTMLDivElement>(null)
+  const previousHealthRef = useRef<{ player: number; enemy: number } | null>(null)
 
   useEffect(() => {
     initializeGame()
   }, [initializeGame])
+
+  // Monitor health changes for automatic damage animations
+  useEffect(() => {
+    if (gameState && previousHealthRef.current) {
+      const prev = previousHealthRef.current
+      
+      // Check for player health changes
+      if (gameState.player.health < prev.player) {
+        const damage = prev.player - gameState.player.health
+        battleAnimations.takeDamage(battleEffects, damage, playerRef.current || undefined)
+      } else if (gameState.player.health > prev.player) {
+        const healing = gameState.player.health - prev.player
+        battleAnimations.heal(battleEffects, healing, playerRef.current || undefined)
+      }
+      
+      // Check for enemy health changes
+      if (gameState.enemy && gameState.enemy.health < prev.enemy) {
+        const damage = prev.enemy - gameState.enemy.health
+        if (damage >= 10) {
+          battleAnimations.majorImpact(battleEffects, damage, enemyRef.current || undefined)
+        } else {
+          battleAnimations.takeDamage(battleEffects, damage, enemyRef.current || undefined)
+        }
+      }
+    }
+    
+    // Update previous health values
+    if (gameState) {
+      previousHealthRef.current = {
+        player: gameState.player.health,
+        enemy: gameState.enemy?.health || 0
+      }
+    }
+  }, [gameState?.player.health, gameState?.enemy?.health, battleEffects])
 
   const handleCardSelect = (index: number) => {
     if (selectedCardIndex === index) {
@@ -31,14 +72,34 @@ export default function GamePage() {
 
   const handlePlayCard = async () => {
     if (selectedCardIndex !== null && gameState?.player.hand[selectedCardIndex]) {
+      const card = gameState.player.hand[selectedCardIndex]
+      
       try {
+        // Start card playing animation
+        setPlayingCardIndex(selectedCardIndex)
+        
+        // Small delay to show the card animation
+        await new Promise(resolve => setTimeout(resolve, 300))
+        
         await processAction({
           type: 'play_card',
           cardIndex: selectedCardIndex,
         })
+        
+        // Trigger appropriate battle animation based on card type
+        if (card.type === 'attack') {
+          battleAnimations.playAttackCard(battleEffects, card.cost * 2, enemyRef.current || undefined)
+        } else if (card.type === 'defense') {
+          battleAnimations.playDefenseCard(battleEffects, card.cost, playerRef.current || undefined)
+        } else if (card.type === 'context') {
+          battleAnimations.playEnergyCard(battleEffects, card.cost, playerRef.current || undefined)
+        }
+        
         setSelectedCardIndex(null)
+        setPlayingCardIndex(null)
       } catch (error) {
         console.error('Failed to play card:', error)
+        setPlayingCardIndex(null)
       }
     }
   }
@@ -121,6 +182,7 @@ export default function GamePage() {
       <div className="grid grid-cols-1 xl:grid-cols-4 lg:grid-cols-3 gap-4 lg:gap-6 h-[calc(100vh-120px)] max-w-7xl mx-auto">
         {/* Left Panel - Player Status */}
         <motion.div
+          ref={playerRef}
           initial={{ opacity: 0, x: -50 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ delay: 0.2 }}
@@ -138,7 +200,9 @@ export default function GamePage() {
         >
           {/* Enemy Area */}
           <div className="flex-1 flex items-start justify-center p-4">
-            {gameState.enemy && <EnemyStatus enemy={gameState.enemy} />}
+            <div ref={enemyRef}>
+              {gameState.enemy && <EnemyStatus enemy={gameState.enemy} />}
+            </div>
           </div>
 
           {/* Battle Effects Area */}
@@ -192,7 +256,8 @@ export default function GamePage() {
                       <GameCard
                         card={card}
                         isSelected={selectedCardIndex === index}
-                        isPlayable={card.cost <= gameState.player.energy}
+                        isPlayable={card.cost <= gameState.player.energy && !isLoading}
+                        isPlaying={playingCardIndex === index}
                         onClick={() => handleCardSelect(index)}
                         className={cn(
                           "transition-all duration-200",
@@ -231,6 +296,13 @@ export default function GamePage() {
           </div>
         </motion.div>
       </div>
+      
+      {/* Battle Effects Overlay */}
+      <BattleEffects
+        damageNumbers={battleEffects.damageNumbers}
+        effects={battleEffects.effects}
+        onEffectComplete={battleEffects.clearEffect}
+      />
     </div>
   )
 }
