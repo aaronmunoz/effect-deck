@@ -1,8 +1,27 @@
 import chalk from 'chalk'
-import type { GameState, GameAction } from '@effect-deck/core'
-import { canPlayCardSync } from '@effect-deck/core'
+import type { GameState, GameAction, Card, Player } from '@effect-deck/core'
 import { CardDisplay } from './card-display'
 import { type TextDisplayMode, getNextDisplayMode } from './text-display-mode'
+
+// Simple synchronous validation for CLI display purposes
+const canPlayCardForDisplay = (card: Card, player: Player): boolean => {
+  if (player.energy < card.cost) return false
+  
+  if (card.type === 'dependent') {
+    switch (card.id) {
+      case 'overclock_attack':
+        return player.contexts.includes('HighEnergy')
+      case 'shield_slam':
+        return player.shield > 0
+      case 'execute_algorithm':
+        return player.contexts.includes('Algorithm')
+      default:
+        return true
+    }
+  }
+  
+  return true
+}
 
 export class InteractiveInput {
   private cardDisplay = new CardDisplay()
@@ -77,7 +96,7 @@ export class InteractiveInput {
             
           case '\r': // Enter
           case '\n':
-            if (player.hand[selectedCardIndex] && canPlayCardSync(player.hand[selectedCardIndex], player)) {
+            if (player.hand[selectedCardIndex] && canPlayCardForDisplay(player.hand[selectedCardIndex], player)) {
               if (typeof stdin.setRawMode === "function") { stdin.setRawMode(false) }
               stdin.pause()
               stdin.removeListener('data', onKeyPress)
@@ -101,7 +120,7 @@ export class InteractiveInput {
           case '8':
           case '9':
             const cardIndex = parseInt(key) - 1
-            if (player.hand[cardIndex] && canPlayCardSync(player.hand[cardIndex], player)) {
+            if (player.hand[cardIndex] && canPlayCardForDisplay(player.hand[cardIndex], player)) {
               if (typeof stdin.setRawMode === "function") { stdin.setRawMode(false) }
               stdin.pause()
               stdin.removeListener('data', onKeyPress)
@@ -139,7 +158,7 @@ export class InteractiveInput {
 
   private renderActionPrompt(gameState: GameState): void {
     const { player } = gameState
-    const playableCards = player.hand.filter(card => canPlayCardSync(card, player))
+    const playableCards = player.hand.filter(card => canPlayCardForDisplay(card, player))
     
     if (playableCards.length === 0) {
       console.log(chalk.yellow.bold('⚠️ No playable cards - you must end your turn'))
