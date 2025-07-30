@@ -6,6 +6,7 @@ import { ArrowLeft, RotateCcw, Pause } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useGameState } from '@/hooks/use-game-state'
 import { useBattleEffects, battleAnimations } from '@/hooks/use-battle-effects'
+import { useTurnFlow } from '@/hooks/use-turn-flow'
 import { cn } from '@/lib/utils'
 import { PlayerStatus } from '@/components/player-status'
 import { EnemyStatus } from '@/components/enemy-status'
@@ -13,6 +14,8 @@ import { GameCard } from '@/components/card'
 import { GameLog } from '@/components/game-log'
 import { ActionButtons } from '@/components/action-buttons'
 import { BattleEffects } from '@/components/battle-effects'
+import { TurnIndicator, PhaseTransition } from '@/components/turn-indicator'
+import { GameOverModal } from '@/components/game-over-modal'
 
 export default function GamePage() {
   const router = useRouter()
@@ -20,6 +23,7 @@ export default function GamePage() {
   const [selectedCardIndex, setSelectedCardIndex] = useState<number | null>(null)
   const [playingCardIndex, setPlayingCardIndex] = useState<number | null>(null)
   const battleEffects = useBattleEffects()
+  const turnFlow = useTurnFlow(gameState)
   const playerRef = useRef<HTMLDivElement>(null)
   const enemyRef = useRef<HTMLDivElement>(null)
   const previousHealthRef = useRef<{ player: number; enemy: number } | null>(null)
@@ -207,32 +211,14 @@ export default function GamePage() {
 
           {/* Battle Effects Area */}
           <div className="flex-1 flex items-center justify-center relative">
-            <motion.div 
-              className="text-center"
-              initial={{ scale: 0.8, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              transition={{ delay: 0.5, type: "spring" }}
-            >
-              <motion.div 
-                className="text-4xl lg:text-6xl mb-2 lg:mb-4"
-                animate={{ 
-                  rotate: [0, -10, 10, 0],
-                  scale: [1, 1.1, 1]
-                }}
-                transition={{ 
-                  duration: 2,
-                  repeat: Infinity,
-                  repeatType: "reverse"
-                }}
-              >
-                ⚔️
-              </motion.div>
-              <div className="terminal-text text-base lg:text-lg font-semibold">
-                {gameState.phase === 'action' ? 'Your Turn' : 
-                 gameState.phase === 'enemy' ? 'Enemy Turn' : 
-                 gameState.phase === 'draw' ? 'Draw Phase' : 'Cleanup'}
-              </div>
-            </motion.div>
+            <TurnIndicator 
+              phase={gameState.phase}
+              turnNumber={gameState.turn}
+              onPhaseComplete={() => {
+                // Phase auto-completion logic could go here
+                console.log(`${gameState.phase} phase completed`)
+              }}
+            />
           </div>
 
           {/* Player Hand */}
@@ -302,6 +288,29 @@ export default function GamePage() {
         damageNumbers={battleEffects.damageNumbers}
         effects={battleEffects.effects}
         onEffectComplete={battleEffects.clearEffect}
+      />
+      
+      {/* Phase Transition Overlay */}
+      <AnimatePresence>
+        {turnFlow.showPhaseTransition && turnFlow.turnFlow.previousPhase && (
+          <PhaseTransition
+            fromPhase={turnFlow.turnFlow.previousPhase}
+            toPhase={turnFlow.turnFlow.currentPhase}
+            onComplete={turnFlow.completePhaseTransition}
+          />
+        )}
+      </AnimatePresence>
+      
+      {/* Game Over Modal */}
+      <GameOverModal
+        isVisible={gameState?.isGameOver || false}
+        isVictory={gameState?.victory || false}
+        onRestart={() => {
+          initializeGame()
+        }}
+        onBackToMenu={() => {
+          router.push('/')
+        }}
       />
     </div>
   )
