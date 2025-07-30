@@ -16,6 +16,7 @@ import { ActionButtons } from '@/components/action-buttons'
 import { BattleEffects } from '@/components/battle-effects'
 import { TurnIndicator, PhaseTransition } from '@/components/turn-indicator'
 import { GameOverModal } from '@/components/game-over-modal'
+import { EnemyTurnSequence } from '@/components/enemy-turn-sequence'
 
 export default function GamePage() {
   const router = useRouter()
@@ -300,6 +301,18 @@ export default function GamePage() {
           />
         )}
       </AnimatePresence>
+      
+      {/* Enemy Turn Sequence */}
+      {gameState?.enemy && (
+        <EnemyTurnSequence
+          enemy={gameState.enemy}
+          isEnemyTurn={gameState.phase === 'enemy'}
+          onSequenceComplete={() => {
+            console.log('Enemy turn sequence completed')
+            // The game engine will handle the actual turn progression
+          }}
+        />
+      )}
       
       {/* Game Over Modal */}
       <GameOverModal
