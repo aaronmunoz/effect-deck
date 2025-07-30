@@ -2,7 +2,7 @@ import { Layer, Effect } from 'effect'
 import { GameEngineLayer } from './game-engine'
 import { CardRegistryLive } from './card-registry'
 import { GameEffectsLive } from './game-effects'
-import { CardBootstrapLayer } from './card-bootstrap'
+import { CardBootstrapLayer } from './card-bootstrap-new'
 
 /**
  * Comprehensive Application Layer with Deterministic Initialization

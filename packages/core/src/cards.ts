@@ -22,6 +22,8 @@ export const BASIC_CARDS: Card[] = [
   createCard('quick_strike', 'Quick Strike', 0, 'Deal 3 damage', 'attack'),
   createCard('precise_strike', 'Precise Strike', 2, 'Deal 8 damage, ignores shield', 'attack'),
   createCard('wild_strike', 'Wild Strike', 1, 'Deal 3-9 damage randomly', 'attack'),
+  createCard('vampiric_strike', 'Vampiric Strike', 2, 'Deal 10 damage, gain 2 shield', 'attack'),
+  createCard('berserker_strike', 'Berserker Strike', 3, 'Deal 15 damage, gain 3 shield', 'attack'),
   createCard('block', 'Block', 1, 'Gain 5 shield', 'defense'),
   createCard('shield_up', 'Shield Up', 2, 'Gain 8 shield', 'defense'),
   createCard('dodge', 'Dodge', 1, 'Negate next attack', 'defense'),
