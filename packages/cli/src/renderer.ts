@@ -1,5 +1,24 @@
-import type { GameState, Card } from '@effect-deck/core'
-import { canPlayCardSync } from '@effect-deck/core'
+import type { GameState, Card, Player } from '@effect-deck/core'
+
+// Simple synchronous validation for CLI display purposes
+const canPlayCardForDisplay = (card: Card, player: Player): boolean => {
+  if (player.energy < card.cost) return false
+  
+  if (card.type === 'dependent') {
+    switch (card.id) {
+      case 'overclock_attack':
+        return player.contexts.includes('HighEnergy')
+      case 'shield_slam':
+        return player.shield > 0
+      case 'execute_algorithm':
+        return player.contexts.includes('Algorithm')
+      default:
+        return true
+    }
+  }
+  
+  return true
+}
 
 export class GameRenderer {
   render(gameState: GameState): void {
@@ -72,6 +91,6 @@ export class GameRenderer {
   }
 
   private canPlayCardHelper(card: Card, gameState: GameState): boolean {
-    return canPlayCardSync(card, gameState.player)
+    return canPlayCardForDisplay(card, gameState.player)
   }
 }
