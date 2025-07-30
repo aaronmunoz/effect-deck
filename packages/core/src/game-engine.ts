@@ -43,17 +43,18 @@ const createInitialGameState = (): GameState => ({
   victory: false,
 })
 
-const drawCards = (player: Player, count: number): Player => {
-  const cardsToDraw = Math.min(count, player.deck.length)
-  const drawnCards = player.deck.slice(0, cardsToDraw)
-  const remainingDeck = player.deck.slice(cardsToDraw)
-  
-  return {
-    ...player,
-    hand: [...player.hand, ...drawnCards],
-    deck: remainingDeck,
-  }
-}
+const drawCards = (player: Player, count: number): Effect.Effect<Player, never> =>
+  Effect.gen(function* () {
+    const cardsToDraw = Math.min(count, player.deck.length)
+    const drawnCards = player.deck.slice(0, cardsToDraw)
+    const remainingDeck = player.deck.slice(cardsToDraw)
+    
+    return {
+      ...player,
+      hand: [...player.hand, ...drawnCards],
+      deck: remainingDeck,
+    }
+  })
 
 const playCard = (gameState: GameState, cardId: string): Effect.Effect<GameState, GameError, CardRegistry> =>
   Effect.gen(function* () {
@@ -105,39 +106,44 @@ const playCard = (gameState: GameState, cardId: string): Effect.Effect<GameState
     }
   })
 
-const enemyTurn = (gameState: GameState): GameState => {
-  if (!gameState.enemy || gameState.enemy.health <= 0) return gameState
-  
-  const { player, enemy } = gameState
-  const damagedPlayer = applyDamage(player, enemy.damage) as Player
-  const isPlayerDefeated = damagedPlayer.health <= 0
-  
-  return {
-    ...gameState,
-    player: damagedPlayer,
-    log: [...gameState.log, `${enemy.name} deals ${enemy.damage} damage to player`],
-    phase: 'cleanup',
-    isGameOver: isPlayerDefeated,
-    victory: false,
-  }
-}
+const enemyTurn = (gameState: GameState): Effect.Effect<GameState, never> =>
+  Effect.gen(function* () {
+    if (!gameState.enemy || gameState.enemy.health <= 0) {
+      return gameState
+    }
+    
+    const { player, enemy } = gameState
+    const damagedPlayer = yield* applyDamage(player, enemy.damage)
+    const isPlayerDefeated = damagedPlayer.health <= 0
+    
+    return {
+      ...gameState,
+      player: damagedPlayer,
+      log: [...gameState.log, `${enemy.name} deals ${enemy.damage} damage to player`],
+      phase: 'cleanup' as const,
+      isGameOver: isPlayerDefeated,
+      victory: false,
+    }
+  })
 
-const getValidActions = (gameState: GameState): GameAction[] => {
-  const actions: GameAction[] = []
-  
-  if (gameState.isGameOver) return actions
-  
-  if (gameState.phase === 'action') {
-    gameState.player.hand.forEach((card) => {
-      if (canPlayCardSync(card, gameState.player)) {
-        actions.push({ type: 'play_card', cardId: card.id })
+const getValidActions = (gameState: GameState): Effect.Effect<GameAction[], never, CardRegistry> =>
+  Effect.gen(function* () {
+    const actions: GameAction[] = []
+    
+    if (gameState.isGameOver) return actions
+    
+    if (gameState.phase === 'action') {
+      for (const card of gameState.player.hand) {
+        const canPlay = yield* canPlayCard(card, gameState)
+        if (canPlay) {
+          actions.push({ type: 'play_card', cardId: card.id })
+        }
       }
-    })
-    actions.push({ type: 'end_turn' })
-  }
-  
-  return actions
-}
+      actions.push({ type: 'end_turn' })
+    }
+    
+    return actions
+  })
 
 export const canPlayCard = (card: Card, gameState: GameState): Effect.Effect<boolean, never, CardRegistry> =>
   Effect.gen(function* () {
@@ -160,25 +166,6 @@ export const canPlayCard = (card: Card, gameState: GameState): Effect.Effect<boo
     return validationResult._tag === 'Right'
   })
 
-// Backward compatibility function (synchronous version)
-export const canPlayCardSync = (card: Card, player: Player): boolean => {
-  if (player.energy < card.cost) return false
-  
-  if (card.type === 'dependent') {
-    switch (card.id) {
-      case 'overclock_attack':
-        return player.contexts.includes('HighEnergy')
-      case 'shield_slam':
-        return player.shield > 0
-      case 'execute_algorithm':
-        return player.contexts.includes('Algorithm')
-      default:
-        return true
-    }
-  }
-  
-  return true
-}
 
 // Layer that provides GameStateRef
 export const GameStateRefLive: Layer.Layer<GameStateRef> = 
@@ -197,10 +184,10 @@ export const GameEngineLive: Layer.Layer<GameEngine, never, GameStateRef | CardR
     Effect.gen(function* () {
       const { ref: gameStateRef } = yield* GameStateRef
 
-      const startNewGame = (): Effect.Effect<GameResponse, GameError> =>
+      const startNewGame = (): Effect.Effect<GameResponse, GameError, CardRegistry> =>
         Effect.gen(function* () {
           const initialState = createInitialGameState()
-          const playerWithCards = drawCards(initialState.player, 5)
+          const playerWithCards = yield* drawCards(initialState.player, 5)
           const newState = {
             ...initialState,
             player: playerWithCards,
@@ -208,10 +195,11 @@ export const GameEngineLive: Layer.Layer<GameEngine, never, GameStateRef | CardR
           }
           
           yield* Ref.set(gameStateRef, newState)
+          const validActions = yield* getValidActions(newState)
           
           return {
             gameState: newState,
-            validActions: getValidActions(newState),
+            validActions,
           }
         })
       
@@ -226,8 +214,8 @@ export const GameEngineLive: Layer.Layer<GameEngine, never, GameStateRef | CardR
               newState = yield* playCard(currentState, action.cardId)
               break
             case 'end_turn':
-              const afterEnemy = enemyTurn(currentState)
-              const playerWithCards = drawCards(afterEnemy.player, 2)
+              const afterEnemy = yield* enemyTurn(currentState)
+              const playerWithCards = yield* drawCards(afterEnemy.player, 2)
               newState = {
                 ...afterEnemy,
                 turn: afterEnemy.turn + 1,
@@ -249,10 +237,11 @@ export const GameEngineLive: Layer.Layer<GameEngine, never, GameStateRef | CardR
           }
           
           yield* Ref.set(gameStateRef, newState)
+          const validActions = yield* getValidActions(newState)
           
           return {
             gameState: newState,
-            validActions: getValidActions(newState),
+            validActions,
           }
         })
       
@@ -272,9 +261,3 @@ export const GameEngineLayer = Layer.provide(
   GameStateRefLive
 )
 
-// Backward compatibility function (deprecated)
-export const createGameEngine = (): Effect.Effect<GameEngine, never, GameEngine> =>
-  Effect.gen(function* () {
-    const engine = yield* GameEngine
-    return engine
-  })

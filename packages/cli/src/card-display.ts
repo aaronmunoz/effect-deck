@@ -1,13 +1,32 @@
 import chalk from 'chalk'
 import boxen from 'boxen'
-import type { Card, GameState } from '@effect-deck/core'
-import { canPlayCardSync } from '@effect-deck/core'
+import type { Card, GameState, Player } from '@effect-deck/core'
 import { 
   type TextDisplayMode, 
   DISPLAY_MODE_CONFIGS, 
   smartTruncate, 
   calculateCardWidth 
 } from './text-display-mode'
+
+// Simple synchronous validation for CLI display purposes
+const canPlayCardForDisplay = (card: Card, player: Player): boolean => {
+  if (player.energy < card.cost) return false
+  
+  if (card.type === 'dependent') {
+    switch (card.id) {
+      case 'overclock_attack':
+        return player.contexts.includes('HighEnergy')
+      case 'shield_slam':
+        return player.shield > 0
+      case 'execute_algorithm':
+        return player.contexts.includes('Algorithm')
+      default:
+        return true
+    }
+  }
+  
+  return true
+}
 
 export class CardDisplay {
   
@@ -20,7 +39,7 @@ export class CardDisplay {
     selected = false, 
     displayMode: TextDisplayMode = 'normal'
   ): string {
-    const playable = canPlayCardSync(card, gameState.player)
+    const playable = canPlayCardForDisplay(card, gameState.player)
     const cardColor = this.getCardColor(card.type, playable)
     const borderColor = selected ? 'yellow' : (playable ? 'green' : 'red')
     
@@ -229,7 +248,7 @@ export class CardDisplay {
    * Render detailed view of a specific card with full text
    */
   private renderCardDetails(card: Card, gameState: GameState): string {
-    const playable = canPlayCardSync(card, gameState.player)
+    const playable = canPlayCardForDisplay(card, gameState.player)
     const cardColor = this.getCardColor(card.type, playable)
     
     const statusText = playable 

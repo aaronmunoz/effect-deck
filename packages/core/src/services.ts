@@ -7,7 +7,7 @@ import type { CardRegistry } from './card-effects'
 export interface GameEngine {
   readonly processAction: (action: GameAction) => Effect.Effect<GameResponse, GameError, CardRegistry>
   readonly getGameState: () => Effect.Effect<GameState>
-  readonly startNewGame: () => Effect.Effect<GameResponse, GameError>
+  readonly startNewGame: () => Effect.Effect<GameResponse, GameError, CardRegistry>
 }
 
 // Context tag for GameEngine service

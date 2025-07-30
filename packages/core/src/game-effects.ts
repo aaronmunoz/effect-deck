@@ -1,31 +1,16 @@
 import { Effect, Layer } from 'effect'
-import type { Player, Enemy } from './schema'
 import type { GameEffects } from './card-effects'
 import { GameEffects as GameEffectsTag } from './card-effects'
-
-// Apply damage calculation with shield mechanics
-const applyDamage = (target: Player | Enemy, damage: number, ignoreShield = false): Player | Enemy => {
-  const effectiveDamage = ignoreShield ? damage : Math.max(0, damage - target.shield)
-  const newShield = ignoreShield ? target.shield : Math.max(0, target.shield - damage)
-  
-  return {
-    ...target,
-    health: Math.max(0, target.health - effectiveDamage),
-    shield: newShield,
-  }
-}
+import { applyDamage, addShield } from './cards'
 
 // Implementation of composable game effects
 export const GameEffectsLive: Layer.Layer<GameEffects> = 
   Layer.succeed(GameEffectsTag, {
     dealDamage: (target, amount, ignoreShield = false) =>
-      Effect.succeed(applyDamage(target, amount, ignoreShield) as Enemy),
+      applyDamage(target, amount, ignoreShield),
     
     gainShield: (player, amount) =>
-      Effect.succeed({
-        ...player,
-        shield: player.shield + amount,
-      }),
+      addShield(player, amount),
     
     addContext: (player, context) =>
       Effect.succeed({

@@ -49,18 +49,30 @@ export const getCard = (id: string): Effect.Effect<Card, CardNotFound> =>
 export const getAllCards = (): Effect.Effect<Card[]> =>
   Effect.succeed(BASIC_CARDS)
 
-export const applyDamage = (target: Player | Enemy, damage: number, ignoreShield = false): Player | Enemy => {
-  const effectiveDamage = ignoreShield ? damage : Math.max(0, damage - target.shield)
-  const newShield = ignoreShield ? target.shield : Math.max(0, target.shield - damage)
-  
-  return {
-    ...target,
-    health: Math.max(0, target.health - effectiveDamage),
-    shield: newShield,
-  }
+// Type-safe overloads for applyDamage
+export function applyDamage(target: Player, damage: number, ignoreShield?: boolean): Effect.Effect<Player, never>
+export function applyDamage(target: Enemy, damage: number, ignoreShield?: boolean): Effect.Effect<Enemy, never>
+export function applyDamage(target: Player | Enemy, damage: number, ignoreShield = false): Effect.Effect<Player | Enemy, never> {
+  return Effect.gen(function* () {
+    const effectiveDamage = ignoreShield ? damage : Math.max(0, damage - target.shield)
+    const newShield = ignoreShield ? target.shield : Math.max(0, target.shield - damage)
+    
+    return {
+      ...target,
+      health: Math.max(0, target.health - effectiveDamage),
+      shield: newShield,
+    }
+  })
 }
 
-export const addShield = (target: Player | Enemy, amount: number): Player | Enemy => ({
-  ...target,
-  shield: target.shield + amount,
-})
+// Type-safe overloads for addShield
+export function addShield(target: Player, amount: number): Effect.Effect<Player, never>
+export function addShield(target: Enemy, amount: number): Effect.Effect<Enemy, never>
+export function addShield(target: Player | Enemy, amount: number): Effect.Effect<Player | Enemy, never> {
+  return Effect.gen(function* () {
+    return {
+      ...target,
+      shield: target.shield + amount,
+    }
+  })
+}
